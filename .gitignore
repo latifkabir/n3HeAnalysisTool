@@ -1,0 +1,11 @@
+*.pdf
+*.ppt
+*.pptx
+*.docx
+*~
+*.exe
+*.o
+SampleData/
+*.root
+.fuse*
+Results/
