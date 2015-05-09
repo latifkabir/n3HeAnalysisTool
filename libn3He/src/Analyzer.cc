@@ -9,6 +9,7 @@
 #include<iomanip>
 #include<fstream>
 #include<sstream>
+#include<cmath>
 using namespace std;
 
 #include<TFile.h>
