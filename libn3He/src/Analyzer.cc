@@ -29,9 +29,9 @@ void n3HeAnalyzer(int start_run,int stop_run)
 {
     // Create a histogram for the values we read.
     int n_bin=100;
-    double x_low=-0.005; 
-    double x_up=0.005;
-    int skip_pls=7; //Skip dropped pulse including 1 before and 5 after.
+    double x_low=-0.05; 
+    double x_up=0.05;
+    int skip_pls=9; //Skip dropped pulse including 1 before and 5 after.
     int run_counter=0;
     int n_adc=4; //Number of ADC
     int n_ch=36; //Number of Channels
@@ -113,7 +113,7 @@ void n3HeAnalyzer(int start_run,int stop_run)
 
 	int event=1; //Skip First event & start from second event as first one is just Run number flag.
 	int nentries=(b->GetEntries()-1); //Number of total events to be considered. Skip last one.
-	int max_iter=20; // Maximum iteration for adjacent dropped pulses.
+	int max_iter=200; // Maximum iteration for adjacent dropped pulses.
 
 	while(event < nentries) 
 	{

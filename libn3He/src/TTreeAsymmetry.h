@@ -60,7 +60,7 @@ protected:
     void FillDirty(TBranch *b,int entry,double *sumd,int &spin);
     void FillAsym(int entry,double sumc[][36],double sumc_prev[][36],double norm,double norm_prev,int spin,int spin_prev,double asym[][36]);
     void GetDroppedPls();
-    void CheckSyncStatus(double sumc1,double sumc2,double sumc3,double sumc4,int &pulse);
+    void CheckSyncStatus(double sumc1,double sumc2,double sumc3,double sumc4,double sumc5,double sumc6,double sumc7,double sumc8,int &pulse);
     void FillTree(TTree* tr);
     void RunList(int runNumber);
 

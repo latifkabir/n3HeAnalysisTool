@@ -97,7 +97,7 @@ int TTreeAsymmetry::GetAllBranches( int run,TBranch **b)
 //Get entry numbers of the dropped pulses
 void TTreeAsymmetry::GetDroppedPls()
 {
-    t->Draw(">>temp_list","d30[800][0]<4e8","entrylist");
+    t->Draw(">>temp_list","(d30[200][0]+d30[400][0]+d30[600][0]+d30[800][0]+d30[1000][0])/5<5e7","entrylist");
     list = (TEntryList*)gDirectory->Get("temp_list");
     n_dpulses=list->GetN();
     first_dropped=list->GetEntry(0);
@@ -133,7 +133,11 @@ void TTreeAsymmetry::FillClean(TBranch **b,int entry,double sumc[][36],double &n
 		    error_code=-1;
 		}
 	    }
-	    norm=((i==1 && nch==29) || (i==3 && nch==29) || (i==3 && nch==33)) ? norm+(-1.0*sumc[i][nch]) : norm+sumc[i][nch];
+	    if((i==1 && nch==29) || (i==3 && nch==29) || (i==3 && nch==33)) //Fix polarity issues in some wires
+	    {
+		sumc[i][nch]=-1.0*sumc[i][nch];
+	    }
+	    norm+=sumc[i][nch];
 	}
     }
 }
@@ -239,7 +243,7 @@ void TTreeAsymmetry::FillTree(TTree* tr)
 	FillAsym(i,sumc,sumc_prev,norm,norm_prev,spin,spin_prev,asym);
 
 	if(i==list->GetEntry(dpulse))
-	    CheckSyncStatus(sumc[0][1],sumc[1][1],sumc[2][1],sumc[3][1],dpulse);
+	    CheckSyncStatus(sumc[0][1],sumc[1][1],sumc[2][1],sumc[3][1],sumc[0][20],sumc[1][20],sumc[2][20],sumc[3][20],dpulse);
 
 	if(!fill_status)
 	    break;
@@ -262,9 +266,9 @@ void TTreeAsymmetry::RunList(int runNumber)
 }
 
 //Check if all the five DAQs are synchronized
-void TTreeAsymmetry::CheckSyncStatus(double sumc1,double sumc2,double sumc3,double sumc4,int &pulse)
+void TTreeAsymmetry::CheckSyncStatus(double sumc1,double sumc2,double sumc3,double sumc4,double sumc5,double sumc6,double sumc7,double sumc8,int &pulse)
 {
-    if(sumc1 >1 || sumc2 >1 || sumc3>1 || sumc3 >1)
+    if(sumc1 >1 || sumc2 >1 || sumc3>1 || sumc4 >1 || sumc5 >1 || sumc6 >1 || sumc7 >1 || sumc8 >1)
     {
 	fill_status=false;
 	error_code=-5;
@@ -326,3 +330,11 @@ void TTreeAsymmetry::MakeTree()
 //Make summary file per run
 //Chain the summary file
 //Chain TBranchBinary to compare event to event
+
+
+
+
+//Typical sumd[0] is ~3400 Volts
+//Typical sumd[0] for dropped pulses is ~340 volts
+//At 850KW max d30[][0] signal 500-600 x 10^6
+//For dropped pulses average d30[][0] < 5 x10^7

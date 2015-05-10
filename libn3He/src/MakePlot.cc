@@ -1,5 +1,6 @@
 #include<iostream>
 #include<fstream>
+#include<cmath>
 using namespace std;
 
 #include<TCanvas.h>
@@ -124,7 +125,7 @@ void MakePlot(const char *fName="asymmetry.txt",const char *option="phy")
 	    raw_asym=mean[l*9+w];
 	    raw_error=error[l*9+w];
 	    phy_asym=(1.0/Gfactor(i,j))*raw_asym;
-	    phy_error=(1.0/Gfactor(i,j))*raw_error;
+	    phy_error=abs((1.0/Gfactor(i,j)))*raw_error;
 
 	    if(option==opt[0])
 	    {
@@ -147,7 +148,7 @@ void MakePlot(const char *fName="asymmetry.txt",const char *option="phy")
 
     gStyle->SetPalette(1);
     gr->GetXaxis()->SetTitle("Layer x 9+Wire");
-    if(option=="raw")
+    if(option==opt[0])
 	gr->GetYaxis()->SetTitle("Raw Asym");
     else
 	gr->GetYaxis()->SetTitle("Physics Asym");

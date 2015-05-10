@@ -50,14 +50,14 @@ void TTreeRaw::Init(int runNumber)
 
 //-------------------Get The Data Path-----------------------------
 //On Picard
-    dataPath=DATA_PATH;
+    // dataPath=DATA_PATH;
 //On Basestar
-    // if(runNumber > 0 && runNumber < 23662)
-    // 	dataPath=DATA_PATH1;
-    // else if(runNumber > 23662)
-    // 	dataPath=DATA_PATH2;
-    // else
-    // 	dataPath=DATA_PATH1;
+    if(runNumber > 0 && runNumber < 23662)
+    	dataPath=DATA_PATH1;
+    else if(runNumber > 23662)
+    	dataPath=DATA_PATH2;
+    else
+    	dataPath=DATA_PATH1;
 
 //------------------Get the Leaf list-------------------------------
 
