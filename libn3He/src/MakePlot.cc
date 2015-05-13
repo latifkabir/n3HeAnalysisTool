@@ -127,6 +127,11 @@ void MakePlot(const char *fName="asymmetry.txt",const char *option="phy")
 	    phy_asym=(1.0/Gfactor(i,j))*raw_asym;
 	    phy_error=abs((1.0/Gfactor(i,j)))*raw_error;
 
+	    // if(point==4)
+	    // {
+	    // 	point++;
+	    // 	continue;
+	    // }
 	    if(option==opt[0])
 	    {
 		gr->SetPoint(point,i*9+j,raw_asym);
@@ -153,5 +158,8 @@ void MakePlot(const char *fName="asymmetry.txt",const char *option="phy")
     else
 	gr->GetYaxis()->SetTitle("Physics Asym");
 
+    // gStyle->SetOptStat(1111);
+    gStyle->SetOptFit(1);
     gr->Draw("AP");
+    gr->Fit("pol0");
 }

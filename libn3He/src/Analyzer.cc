@@ -55,7 +55,14 @@ void n3HeAnalyzer(int start_run,int stop_run)
     }
     double MinAsym=0;
     double MaxAsym=0;
-
+    int max_run;
+    int min_run;
+    int max_adc;
+    int min_adc;
+    int max_ch;
+    int min_ch;
+    int max_event;
+    int min_event;
     ofstream asymmetry("asymmetry.txt");
 
     if(!asymmetry)
@@ -159,11 +166,26 @@ void n3HeAnalyzer(int start_run,int stop_run)
 		{
 		    for(int j=0;j<n_ch;j++)
 		    {
+			
 			myHist[i][j]->Fill(md.asym[i][j]);
+
+			//Keep track of max and min asym for outliar
 			if(md.asym[i][j]>MaxAsym)
+			{
 			    MaxAsym=md.asym[i][j];
+			    max_run=run;
+			    max_adc=i;
+			    max_ch=j;
+			    max_event=event;
+			}
 			if(md.asym[i][j]<MinAsym)
+			{
 			    MinAsym=md.asym[i][j];
+			    min_run=run;
+			    min_adc=i;
+			    min_ch=j;
+			    min_event=event;
+			}
 		    }
 		}
 	    }
@@ -179,14 +201,16 @@ void n3HeAnalyzer(int start_run,int stop_run)
 
     if(abs(MaxAsym) > x_up || MinAsym < x_low)
     {
-    	cout << "MaxAsym:"<<MaxAsym <<endl;
-    	cout << "MinAsym:"<<MinAsym <<endl;
+    	cout << "MaxAsym: "<<MaxAsym <<endl;
+	cout << "MaxRun: "<<max_run<<" MaxADC: "<<max_adc<<" MaxCh: "<<max_ch<<" Event: "<<max_event<<endl;
+    	cout << "MinAsym: "<<MinAsym <<endl;
+	cout << "MinRun: "<<min_run<<" MinADC: "<<min_adc<<" MinCh: "<<min_ch<<" Event: "<<min_event<<endl;
     	cout << "x_up:"<<x_up <<endl;
     	cout << "x_low:"<<x_low <<endl;
     	cout<<"Please adjust the range of the histogram to cover all events"<<endl;
     }
     //========Draw the histo and extract desired param==================
-    myHist[0][1]->Draw();
+    myHist[0][35]->Draw();
     // cout << "Mean:"<<myHist[0][5]->GetMean() <<endl;
     // cout << "RMS:"<<myHist[0][5]->GetRMS() <<endl;
     // cout << "Error in Mean:"<<myHist[0][5]->GetMeanError() <<endl;

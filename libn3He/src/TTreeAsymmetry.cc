@@ -97,7 +97,7 @@ int TTreeAsymmetry::GetAllBranches( int run,TBranch **b)
 //Get entry numbers of the dropped pulses
 void TTreeAsymmetry::GetDroppedPls()
 {
-    t->Draw(">>temp_list","(d30[200][0]+d30[400][0]+d30[600][0]+d30[800][0]+d30[1000][0])/5<5e7","entrylist");
+    t->Draw(">>temp_list","(d30[200][0]+d30[400][0]+d30[600][0]+d30[800][0]+d30[1000][0])/5<3e8","entrylist");
     list = (TEntryList*)gDirectory->Get("temp_list");
     n_dpulses=list->GetN();
     first_dropped=list->GetEntry(0);
@@ -243,8 +243,14 @@ void TTreeAsymmetry::FillTree(TTree* tr)
 	FillAsym(i,sumc,sumc_prev,norm,norm_prev,spin,spin_prev,asym);
 
 	if(i==list->GetEntry(dpulse))
-	    CheckSyncStatus(sumc[0][1],sumc[1][1],sumc[2][1],sumc[3][1],sumc[0][20],sumc[1][20],sumc[2][20],sumc[3][20],dpulse);
-
+	{
+	    if((i+600)==list->GetEntry(dpulse+1))
+		CheckSyncStatus(sumc[0][1],sumc[1][1],sumc[2][1],sumc[3][1],sumc[0][20],sumc[1][20],sumc[2][20],sumc[3][20]);
+	    
+	    if(dpulse<(n_dpulses-1))	    
+		dpulse++;
+	}
+	
 	if(!fill_status)
 	    break;
 
@@ -266,15 +272,13 @@ void TTreeAsymmetry::RunList(int runNumber)
 }
 
 //Check if all the five DAQs are synchronized
-void TTreeAsymmetry::CheckSyncStatus(double sumc1,double sumc2,double sumc3,double sumc4,double sumc5,double sumc6,double sumc7,double sumc8,int &pulse)
+void TTreeAsymmetry::CheckSyncStatus(double sumc1,double sumc2,double sumc3,double sumc4,double sumc5,double sumc6,double sumc7,double sumc8)
 {
     if(sumc1 >1 || sumc2 >1 || sumc3>1 || sumc4 >1 || sumc5 >1 || sumc6 >1 || sumc7 >1 || sumc8 >1)
     {
 	fill_status=false;
 	error_code=-5;
     }
-    if(pulse<(n_dpulses-1))
-    pulse++;
 }
 
 //Make the tree
