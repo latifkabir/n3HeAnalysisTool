@@ -128,11 +128,11 @@ void n3HeAnalyzer(int start_run,int stop_run)
 
 	    if(d_counter<n_dpulses)
 	    {
-		if((event+1)==list->GetEntry(d_counter))  //Check if next pulse is a dropped pulse
+		if(event==list->GetEntry(d_counter))  //Check if next pulse is a dropped pulse
 		{
 		    for(int k=0;k<max_iter;k++)   //Most likely case is k=0
 		    {
-			if((event+1)==list->GetEntry(n_dpulses-1))
+			if(event==list->GetEntry(n_dpulses-1))
 			{
 			    if(list->GetEntry(n_dpulses-1)+skip_pls < nentries)
 				event=list->GetEntry(n_dpulses-1)+skip_pls;
@@ -194,7 +194,7 @@ void n3HeAnalyzer(int start_run,int stop_run)
 
 	myFile->Close();
 	run_counter++;
-	cout << "Done with run number: \n"<<run<<endl;
+	cout << "Done with run number: "<<run<<"\n"<<endl;
     }
 
     //=================Check for Histogram range =========================
