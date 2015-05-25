@@ -1,6 +1,7 @@
 #define DATA_PATH "/home/siplu/GIT/MyAnalysis/SampleData/4.n3HeData/"
 #define DATA_PATH1 "/mnt/idata01/data/"
 #define DATA_PATH2 "/mnt/idata02/data/"
+#define DATA_PATH3 "/mnt/idata03/data/"
 
 #define DAQ21_LEAF "h21[48]/I:d21[49][48]/I"
 #define DAQ22_LEAF "h22[48]/I:d22[49][48]/I"
@@ -10,4 +11,4 @@
 
 
 #define ROOT_FILE_PATH "/home/kabir/RootFiles/"
-//#define ROOT_FILE_PATH "/home/siplu/GIT/MyAnalysis/Myn3HeSetup/analysis/RootFiles/"
+/* #define ROOT_FILE_PATH "/home/siplu/GIT/MyAnalysis/Myn3HeSetup/analysis/RootFiles/" */

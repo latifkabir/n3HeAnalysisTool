@@ -121,9 +121,9 @@ void MakePlot(const char *fName="asymmetry.txt",const char *option="phy")
 	{
 	    l=i;
 	    w=j;
-	    Wire_to_ADC(l,w);  // l and w are converted to ADC channels here after
-	    raw_asym=mean[l*9+w];
-	    raw_error=error[l*9+w];
+	    Wire_to_ADC(l,w);  // l and w are converted to ADC channels here after, l:0 to 3 and w:0 to 35 now
+	    raw_asym=mean[l*36+w];
+	    raw_error=error[l*36+w];
 	    phy_asym=(1.0/Gfactor(i,j))*raw_asym;
 	    phy_error=abs((1.0/Gfactor(i,j)))*raw_error;
 
