@@ -10,5 +10,5 @@
 #define DAQ30_LEAF "h30[2]/I:d30[1624][2]/I"
 
 
-#define ROOT_FILE_PATH "/home/kabir/RootFiles/"
-/* #define ROOT_FILE_PATH "/home/siplu/GIT/MyAnalysis/Myn3HeSetup/analysis/RootFiles/" */
+/* #define ROOT_FILE_PATH "/home/kabir/RootFiles/" */
+#define ROOT_FILE_PATH "/home/siplu/GIT/MyAnalysis/SampleData/5.RootFiles/"

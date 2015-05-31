@@ -14,7 +14,7 @@ clear: libn3He_clear
 # BEGIN libn3He
 
 libn3He: lib/libn3He.so
-libn3He_base	= TBranchBinary TTreeRaw ReadBinary CalOffset TTreeAsymmetry TreeMaker Analyzer Help MakePlot
+libn3He_base	= TBranchBinary TTreeRaw n3HeChain ReadBinary CalOffset TTreeAsymmetry TreeMaker Analyzer Help MakePlot AnalyzeChain
 
 libn3He_inc	= $(libn3He_base:=.h)
 libn3He_obj	= $(addprefix src/,$(libn3He_base:=.o))
