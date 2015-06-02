@@ -5,6 +5,8 @@
 #include "n3HeChain.h"
 #include <TChain.h>
 #include <TSystem.h>
+#include <TDirectory.h>
+#include <TLeaf.h>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,12 +24,18 @@ n3HeChain::n3HeChain(int start_run,int stop_run):TChain("T")
 
 n3HeChain::~n3HeChain()
 {
-
-
+   // delete oddList;
+   // delete evenList;
+   // delete droppedPulses;
+   // delete adjacentPulses;
 }
 
 void n3HeChain::Init(int start_run,int stop_run)
 {
+    oddList = new TEventList("oddList");   
+    evenList = new TEventList("evenList");   
+    droppedPulses = new TEventList("droppedPulses");   
+    adjacentPulses = new TEventList("adjacentPulses");
 
     int count_chain=0;
 
@@ -47,10 +55,102 @@ void n3HeChain::Init(int start_run,int stop_run)
 	    cout << "--------->Skipping the run number : "<<run <<"<-------------\n"<<endl;
 	    continue;
 	}
-	//========Add n3He root summary data files to the chain=================
+	//========Add n3He root summary data files to the theis=================
 	this->Add(fName);
 	count_chain++;
     }
     cout << "Total Root files added in the Chain:"<<count_chain<<endl;
-    
+
+    //======Create the list of events with odd events only and also skip events (first event of root file) having run number as flag===== 
+    this->Draw(">>list_temp1","Entry$%24991!=0 && Entry$%2==1","eventlist");
+    oddList = (TEventList*)gDirectory->Get("list_temp1");
+
+    //======Create the list of events with even events only and also skip events (first event of root file) having run number as flag===== 
+    this->Draw(">>list_temp2","Entry$%24991!=0 && Entry$%2==0","eventlist");
+    evenList = (TEventList*)gDirectory->Get("list_temp2");
+
+    //===========Create the list having all dropped pulses events======================
+    this->Draw(">>list_temp3","sumd[0]<2000","eventlist");
+    droppedPulses = (TEventList*)gDirectory->Get("list_temp3");
+
 }
+
+TEventList* n3HeChain::RemoveCut(const char* sel)
+{
+    //=====Create the list having events around dropped pulses.====================
+    int sEvt;
+    int k=0;
+    string opt[2]={"even","odd"}; //Choose any of of the two set of asymmetries.
+
+    while(k<droppedPulses->GetN())
+    {
+    	sEvt=droppedPulses->GetEntry(k);
+    	// cout << "Event:"<<sEvt <<endl;
+    	for(int i=-1;i<8;i++)
+    	{
+    	    if(i!=0)
+    		adjacentPulses->Enter(sEvt+i);
+    	}
+    	k++;
+    }
+
+    //=================Subtract all dropped pulse events and events around it from main list===============
+    if(sel==opt[0])
+    {
+	evenList->Subtract(droppedPulses);
+	evenList->Subtract(adjacentPulses);
+	return evenList;
+    }
+    else
+    {
+	oddList->Subtract(droppedPulses);
+	oddList->Subtract(adjacentPulses);
+	return oddList;
+    }
+
+} 
+
+int n3HeChain::GetLocalEntry(int globalEntry)
+{
+    if(globalEntry>=this->GetEntries() || globalEntry<0)
+	return -1;
+    //Load member Tree corresponding to any specific global entry
+    int localEntry=this->LoadTree(globalEntry); // The return value is local entry number in that member tree.
+    return localEntry;
+}
+
+TTree* n3HeChain::GetMemberTree(int globalEntry)
+{
+    if(globalEntry>=this->GetEntries() || globalEntry<0)
+	cout << "Global entry number exceeds total number of entries or is invalid.Returning last pointer value" <<endl;
+
+    //Load member Tree corresponding to any specific global entry
+    int localEntry=this->LoadTree(globalEntry); // The return value is local entry number in that member tree.
+
+    //Once desired member tree is loaded , retrive that tree
+    TTree *t=this->GetTree();
+    
+    return t;
+}
+
+int n3HeChain::GetRunNumber(int globalEntry)
+{
+    if(globalEntry>=this->GetEntries() || globalEntry<0)
+	return -1;
+    TTree *t=GetMemberTree(globalEntry);
+// Retrive the run number corresponding to this member tree
+    t->GetEntry(0);
+    int runNumber=(int)t->GetLeaf("asym")->GetValue(0); //In the root file the first asymmetry value is a flag for run number.
+    return runNumber;
+}
+
+TTreeRaw* n3HeChain::GetTTreeRaw(int globalEntry)
+{
+    if(globalEntry>=this->GetEntries() || globalEntry<0)
+	cout << "Global entry number exceeds total number of entries or is invalid. Returning last pointer value" <<endl;
+
+    int runNumber=GetRunNumber(globalEntry);
+    // Create TTreeRaw object for the retrived run number 
+    TTreeRaw *tr=new TTreeRaw(runNumber);
+    return tr;
+} 

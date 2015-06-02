@@ -7,7 +7,7 @@
 #include<TTree.h>
 #include<TFile.h>
 
-void SampleAnalysis1()
+void SampleAnalysis()
 {
 
     //Open the root summary file

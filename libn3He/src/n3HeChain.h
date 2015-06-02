@@ -6,9 +6,12 @@
 #ifndef N3HECHAIN_H
 #define N3HECHAIN_H
 
+#include <TTree.h>
 #include <TChain.h>
 #include <TString.h>
 #include <TBranch.h>
+#include <TEventList.h>
+#include "TTreeRaw.h"
 #include"Constants.h"
 
 
@@ -20,9 +23,18 @@ public:
 
     int start_run;
     int stop_run;
+    TEventList *oddList;
+    TEventList *evenList;
+    TEventList *droppedPulses;
+    TEventList *adjacentPulses;
 
     void Init(int start_run,int stop_run);
     n3HeChain(int start_run,int stop_run);
+    TEventList* RemoveCut(const char* sel="odd");
+    int GetLocalEntry(int globalEntry);
+    TTree* GetMemberTree(int globalEntry);
+    int GetRunNumber(int globalEntry);
+    TTreeRaw* GetTTreeRaw(int globalEntry);
     ~n3HeChain();
 protected:
     
