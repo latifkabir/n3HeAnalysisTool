@@ -22,6 +22,9 @@ using namespace std;
 void AnalyzeChain(int start_run,int stop_run)
 {
 
+    if(stop_run==0)
+	stop_run=start_run;
+
     TChain chain("T");
     int count_chain=0;
     TStopwatch time;

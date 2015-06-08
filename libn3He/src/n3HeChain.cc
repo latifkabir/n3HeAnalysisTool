@@ -22,12 +22,18 @@ n3HeChain::n3HeChain(int start_run,int stop_run):TChain("T")
     Init(start_run,stop_run);    
 }
 
+n3HeChain::n3HeChain(int start_run):TChain("T")
+{
+    Init(start_run,start_run);    
+}
+
+
 n3HeChain::~n3HeChain()
 {
    // delete oddList;
    // delete evenList;
    // delete droppedPulses;
-   // delete adjacentPulses;
+   // delete cut;
 }
 
 void n3HeChain::Init(int start_run,int stop_run)
@@ -35,7 +41,7 @@ void n3HeChain::Init(int start_run,int stop_run)
     oddList = new TEventList("oddList");   
     evenList = new TEventList("evenList");   
     droppedPulses = new TEventList("droppedPulses");   
-    adjacentPulses = new TEventList("adjacentPulses");
+    cut = new TEventList("cut");
 
     int count_chain=0;
 
@@ -75,40 +81,54 @@ void n3HeChain::Init(int start_run,int stop_run)
 
 }
 
-TEventList* n3HeChain::RemoveCut(const char* sel)
+TEventList* n3HeChain::GenerateCut()
 {
     //=====Create the list having events around dropped pulses.====================
     int sEvt;
     int k=0;
-    string opt[2]={"even","odd"}; //Choose any of of the two set of asymmetries.
-
     while(k<droppedPulses->GetN())
     {
     	sEvt=droppedPulses->GetEntry(k);
     	// cout << "Event:"<<sEvt <<endl;
-    	for(int i=-1;i<8;i++)
+    	for(int i=-1;i<9;i++)
     	{
-    	    if(i!=0)
-    		adjacentPulses->Enter(sEvt+i);
+    		cut->Enter(sEvt+i);
     	}
     	k++;
     }
+    return cut;
+}
+
+TEventList* n3HeChain::SubtractCut(const char* sel)
+{
+    string opt[2]={"even","odd"}; //Choose any of of the two set of asymmetries.
 
     //=================Subtract all dropped pulse events and events around it from main list===============
     if(sel==opt[0])
     {
-	evenList->Subtract(droppedPulses);
-	evenList->Subtract(adjacentPulses);
+	evenList->Subtract(cut);
 	return evenList;
     }
     else
     {
-	oddList->Subtract(droppedPulses);
-	oddList->Subtract(adjacentPulses);
+	oddList->Subtract(cut);
 	return oddList;
     }
-
 } 
+
+void n3HeChain::ImposeCut(const char* sel)
+{
+    string opt[2]={"even","odd"}; //Choose any of of the two set of asymmetries.
+    TEventList* n3HeList;
+    GenerateCut();
+
+    if(sel==opt[0])
+	n3HeList=SubtractCut("even");
+    else
+	n3HeList=SubtractCut("odd");
+
+    this->SetEventList(n3HeList);
+}
 
 int n3HeChain::GetLocalEntry(int globalEntry)
 {

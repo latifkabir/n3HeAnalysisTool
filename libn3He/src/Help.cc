@@ -35,10 +35,13 @@ void Help()
     cout<<"\t\t\tTEventList *oddList;"<<endl;
     cout<<"\t\t\tTEventList *evenList;"<<endl;
     cout<<"\t\t\tTEventList *droppedPulses;"<<endl;
-    cout<<"\t\t\tTEventList *adjacentPulses;"<<endl<<endl;
+    cout<<"\t\t\tTEventList *cut;"<<endl<<endl;
     cout<<"\t\t\tvoid Init(int start_run,int stop_run);"<<endl;
     cout<<"\t\t\tn3HeChain(int start_run,int stop_run);"<<endl;
-    cout<<"\t\t\tTEventList* RemoveCut(const char* sel=\"odd\");"<<endl;
+    cout<<"\t\t\tn3HeChain(int chain_run);"<<endl;
+    cout<<"\t\t\tTEventList* GenerateCut();"<<endl;
+    cout<<"\t\t\tTEventList* SubtractCut(const char* sel=\"odd\");"<<endl;
+    cout<<"\t\t\tvoid ImposeCut(const char* sel=\"odd\");"<<endl;
     cout<<"\t\t\tint GetLocalEntry(int globalEntry);"<<endl;
     cout<<"\t\t\tTTree* GetMemberTree(int globalEntry);"<<endl;
     cout<<"\t\t\tint GetRunNumber(int globalEntry);"<<endl;

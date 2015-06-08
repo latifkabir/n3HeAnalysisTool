@@ -45,7 +45,7 @@ TTreeAsymmetry::TTreeAsymmetry(int runNumber)
     ntbin_d=(dtbin_f-dtbin_i); //Dirty data number of time bins per event
     spin_cutoff=400; //Sum of absolute value of RFSF signal in Volts.
     beam_cutoff=1.5; //Minimum average beam power in volt
-    no_beam_cutoff=250; //Maximum number of no beam allowed
+    no_beam_cutoff=5000; //Maximum number of pulses with no beam allowed
 }
 
 TTreeAsymmetry::~TTreeAsymmetry()
@@ -261,12 +261,36 @@ void TTreeAsymmetry::FillTree(TTree* tr)
 //Keep record of run goodness
 void TTreeAsymmetry::RunList(int runNumber)
 {
-    ofstream runlist("runList.txt",ofstream::app);
+    ofstream runlist(RUN_LIST,ofstream::app);
 
     if(runlist)
     {
 	runlist <<setw(30);
-	runlist<<runNumber<<"                                                   "<<error_code<<endl;
+	runlist<<runNumber<<"                                  "<<error_code<<"                             ";
+	switch(error_code)
+	{
+	case -1:
+	    runlist<<"HEADER_ISSUE"<<endl;
+	    break;
+	case -2:
+	    runlist <<"PARTIAL_OR_NO_BEAM"<<endl;
+	    break;
+	case -3:
+	    runlist <<"DIFFERENT_NUMBER_OF_ENTRIES"<<endl;
+	    break;
+	case -4:
+	    runlist <<"SHORT_RUN"<<endl;
+	    break;
+	case -5:
+	    runlist <<"SYNC_ISSUE"<<endl;
+	    break;
+	case -6:
+	    runlist <<"NO_DATA_FILE"<<endl;
+	    break;
+	default:
+	    runlist<<"GOOD"<<endl;
+	}
+
 	runlist.close();
     }
 }
@@ -289,6 +313,8 @@ void TTreeAsymmetry::MakeTree()
 	cout<<"The run does NOT exist"<<endl;
     	if(ifstream(fName))
     	    remove(fName);
+	error_code=-6;
+	RunList(run);
 	return;
     }
     cout <<"Making Summary root file for run number: "<<run<<"... ..." <<endl;
@@ -330,12 +356,6 @@ void TTreeAsymmetry::MakeTree()
     }
     RunList(run);
 }
-
-//Make summary file per run
-//Chain the summary file
-//Chain TBranchBinary to compare event to event
-
-
 
 
 //Typical sumd[0] is ~3400 Volts

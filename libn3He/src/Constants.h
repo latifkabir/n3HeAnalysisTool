@@ -12,3 +12,4 @@
 
 /* #define ROOT_FILE_PATH "/home/kabir/RootFiles/" */
 #define ROOT_FILE_PATH "/home/siplu/GIT/MyAnalysis/SampleData/5.RootFiles/"
+#define RUN_LIST "/home/siplu/GIT/MyAnalysis/SampleData/5.RootFiles/runList.txt"
