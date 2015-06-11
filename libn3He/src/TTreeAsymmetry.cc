@@ -90,6 +90,16 @@ int TTreeAsymmetry::GetAllBranches( int run,TBranch **b)
 
     if((entries[0]==entries[1] && entries[2]==entries[3] && entries[3]==entries[4] && entries[0]==entries[4] ))
 	return (entries[0]);
+    else if((entries[0]==entries[1] && entries[2]==entries[3] && entries[3]==entries[0]) && (entries[0]==entries[4] -1))
+    {
+	error_code=0;
+	return (entries[0]);
+    }
+    else if((entries[0]==entries[1] && entries[2]==entries[3] && entries[3]==entries[0]) && (entries[4]==entries[0] -1))
+    {
+	error_code=0;
+	return (entries[4]);
+    } 
     else
 	return -1;
 }
@@ -269,6 +279,9 @@ void TTreeAsymmetry::RunList(int runNumber)
 	runlist<<runNumber<<"                                  "<<error_code<<"                             ";
 	switch(error_code)
 	{
+	case 0:
+	    runlist<<"GOOD"<<endl;
+	    break;
 	case -1:
 	    runlist<<"HEADER_ISSUE"<<endl;
 	    break;
