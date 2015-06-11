@@ -6,6 +6,7 @@
 #pragma link C++ function Help;
 #pragma link C++ function MakePlot;
 #pragma link C++ function AnalyzeChain;
+#pragma link C++ function RunStatus;
 #pragma link C++ class TTreeRaw;
 #pragma link C++ class TTreeAsymmetry;
 #pragma link C++ class TBranchBinary;

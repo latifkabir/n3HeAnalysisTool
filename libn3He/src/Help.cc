@@ -9,6 +9,8 @@ using namespace std;
 
 void Help()
 {
+    cout << "\t\t---To Check the status of a run number(if Good or bad): "<<endl;
+    cout<<"\t\t\tRunStatus(int lower_range,int upper_range)" <<endl<<endl;
     cout << "\t\t---To create a Tree (TTree object) of the raw data file: "<<endl;
     cout<<"\t\t\tTTreeRaw t(int run_number)" <<endl<<endl;
     cout << "\t\t---To create make summary root file for a single run:"<<endl;
