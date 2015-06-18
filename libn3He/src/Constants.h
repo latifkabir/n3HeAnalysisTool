@@ -10,7 +10,7 @@
 #define DAQ30_LEAF "h30[2]/I:d30[1624][2]/I"
 
 
-/* #define ROOT_FILE_PATH "/mnt/idata05/summary/" */
-/* #define RUN_LIST "/mnt/idata05/summary/runList.txt" */
-#define ROOT_FILE_PATH "/home/siplu/GIT/MyAnalysis/SampleData/5.RootFiles/"
-#define RUN_LIST "/home/siplu/GIT/MyAnalysis/SampleData/5.RootFiles/runList.txt"
+#define ROOT_FILE_PATH "/mnt/idata05/summary/"
+#define RUN_LIST "/mnt/idata05/summary/runList.txt"
+//#define ROOT_FILE_PATH "/home/siplu/GIT/MyAnalysis/SampleData/5.RootFiles/"
+//#define RUN_LIST "/home/siplu/GIT/MyAnalysis/SampleData/5.RootFiles/runList.txt"

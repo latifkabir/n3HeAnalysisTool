@@ -1,4 +1,4 @@
-// Filename: n3HeAnalyzer2
+// Filename: ReadRootFile.cc
 // Description: Sample n3He Analysis Method-2
 // Author: Latiful Kabir < siplukabir@gmail.com >
 // Created: Fri Apr 10 14:50:00 2015 (-0400)
