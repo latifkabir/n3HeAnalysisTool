@@ -31,7 +31,7 @@ void n3HeAnalyzer(int start_run,int stop_run)
     int n_bin=100;
     double x_low=-0.05; 
     double x_up=0.05;
-    int skip_pls=9; //Skip dropped pulse including 1 before and 5 after.
+    int skip_pls=9; //Skip dropped pulse including 1 before and 8 after (total 10 pulses).
     int run_counter=0;
     int n_adc=4; //Number of ADC
     int n_ch=36; //Number of Channels
@@ -140,7 +140,7 @@ void n3HeAnalyzer(int start_run,int stop_run)
 				event=-1;
 			    break;
 			}
-			if((list->GetEntry(d_counter+k)+skip_pls) < list->GetEntry(d_counter+k+1))
+			if((list->GetEntry(d_counter+k)+skip_pls) < (list->GetEntry(d_counter+k+1)-1))
 			{
 			    event=list->GetEntry(d_counter+k)+skip_pls;
 			    d_counter+=(k+1);

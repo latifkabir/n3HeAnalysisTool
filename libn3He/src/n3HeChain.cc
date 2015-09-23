@@ -92,7 +92,9 @@ TEventList* n3HeChain::GenerateCut()
     	// cout << "Event:"<<sEvt <<endl;
     	for(int i=-1;i<9;i++)
     	{
-    		cut->Enter(sEvt+i);
+	    if(sEvt==0 && i==-1)
+		continue;
+	    cut->Enter(sEvt+i);
     	}
     	k++;
     }
