@@ -120,7 +120,6 @@ void n3HeAnalyzer(int start_run,int stop_run)
 
 	int event=1; //Skip First event & start from second event as first one is just Run number flag.
 	int nentries=(b->GetEntries()-1); //Number of total events to be considered. Skip last one.
-	// int max_iter=2500; // Maximum iteration for adjacent dropped pulses.
 
 	//If the any of the first two pulses is a dopped pilse, it would need to be bypassed carefully to be consistant with rest of the algorithm.
 	if(list->GetEntry(0)==0)
