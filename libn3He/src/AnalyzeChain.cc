@@ -11,6 +11,7 @@ using namespace std;
 
 #include<TChain.h>
 #include<TSystem.h>
+#include<TROOT.h>
 #include<TEventList.h>
 #include<TStopwatch.h>
 #include<TH1D.h>
@@ -28,6 +29,7 @@ void AnalyzeChain(int start_run,int stop_run)
     TChain chain("T");
     int count_chain=0;
     TStopwatch time;
+    // gROOT->SetBatch();
     time.Start();
 
     ofstream asymmetry("asymmetry.txt");
@@ -87,8 +89,13 @@ void AnalyzeChain(int start_run,int stop_run)
     {
 	sEvt=list2->GetEntry(k);
 	// cout << "Event:"<<sEvt <<endl;
-	for(int i=-1;i<8;i++)
+	for(int i=-1;i<9;i++)
 	{
+	    if(sEvt==0 && i==-1)
+		continue;
+	    if((sEvt+i) >= chain.GetEntries())
+		continue;
+
 	    if(i!=0)
 		list3->Enter(sEvt+i);
 	}
@@ -105,11 +112,12 @@ void AnalyzeChain(int start_run,int stop_run)
     chain.SetEventList(list1);
 
     //=====================Draw The desired channel=======================
+    cout<<"Now analyzing channels of each ADC ..."<<endl;
     for(int adc=0;adc<4;adc++)
     {
 	for(int ch=0;ch<36;ch++)
 	{
-	    chain.Draw(Form("asym[%i][%i]>>h",adc,ch));
+	    chain.Draw(Form("asym[%i][%i]>>h",adc,ch),"","goff");  //goff disables drawing(showing) graphics(plots)
 
 	    asymmetry<<setw(10);
 	    asymmetry<<setprecision(8);
@@ -119,9 +127,15 @@ void AnalyzeChain(int start_run,int stop_run)
 	    // cout << "Channel:"<<ch<<"RMS:"<<h->GetRMS()<<endl;
 	    // cout << "Channel:"<<ch<<"Mean Error:"<<h->GetMeanError()<<endl;
 	    // h->Draw();
+	    cout << "."<<flush;
+
 	}
+	cout <<endl;
+
     }
     asymmetry.close();
+    cout << "Number of Entries:"<< h->GetEntries() <<endl;
+
     //==============Must delete lists to re-run same script from CINT smoothly============================
     delete list1;
     delete list2;

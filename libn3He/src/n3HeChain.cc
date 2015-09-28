@@ -94,6 +94,9 @@ TEventList* n3HeChain::GenerateCut()
     	{
 	    if(sEvt==0 && i==-1)
 		continue;
+	    if((sEvt+i) >= this->GetEntries())
+		continue;
+	    
 	    cut->Enter(sEvt+i);
     	}
     	k++;

@@ -120,7 +120,18 @@ void n3HeAnalyzer(int start_run,int stop_run)
 
 	int event=1; //Skip First event & start from second event as first one is just Run number flag.
 	int nentries=(b->GetEntries()-1); //Number of total events to be considered. Skip last one.
-	int max_iter=200; // Maximum iteration for adjacent dropped pulses.
+	// int max_iter=2500; // Maximum iteration for adjacent dropped pulses.
+
+	//If the any of the first two pulses is a dopped pilse, it would need to be bypassed carefully to be consistant with rest of the algorithm.
+	if(list->GetEntry(0)==0)
+	    event=-1;
+	if(list->GetEntry(0)==1)
+	    event=0;
+	if(list->GetEntry(1)==1)
+	{
+	    event=0;
+	    d_counter=1;
+	}
 
 	while(event < nentries) 
 	{
@@ -130,27 +141,37 @@ void n3HeAnalyzer(int start_run,int stop_run)
 	    {
 		if((event+1)==list->GetEntry(d_counter))  //Check if next pulse is a dropped pulse
 		{
-		    for(int k=0;k<max_iter;k++)   //Most likely case is k=0
+		    if((event+1)==list->GetEntry(n_dpulses-1)) //Check if its last dropped pulse
 		    {
-			if((event+1)==list->GetEntry(n_dpulses-1))
-			{
-			    if(list->GetEntry(n_dpulses-1)+skip_pls < nentries)
-				event=list->GetEntry(n_dpulses-1)+skip_pls;
-			    else
-				event=-1;
-			    break;
-			}
-			if((list->GetEntry(d_counter+k)+skip_pls) < (list->GetEntry(d_counter+k+1)-1))
-			{
-			    event=list->GetEntry(d_counter+k)+skip_pls;
-			    d_counter+=(k+1);
-			    break;
-			}
-			if(k>(max_iter-2))
-			{
-			    cout << "To Many Dropped Pulses." <<endl;
-			    cout << "Skipping Rest of the run: "<<run <<endl;
+			if(list->GetEntry(n_dpulses-1)+skip_pls < nentries)
+			    event=list->GetEntry(n_dpulses-1)+skip_pls;
+			else
 			    event=-1;
+		    }
+		    else
+		    {
+			for(int k=0;k<(n_dpulses-d_counter);k++)   //Most likely case is k=0
+			{
+			    if((k+d_counter+1)==n_dpulses)
+			    {
+				if(list->GetEntry(n_dpulses-1)+skip_pls < nentries)
+				{
+				    event=list->GetEntry(n_dpulses-1)+skip_pls;
+				    break;
+				}
+				else
+				{
+				    event=-1;
+				    break;
+				}
+			    }
+			    
+			    if((list->GetEntry(d_counter+k)+skip_pls) < (list->GetEntry(d_counter+k+1)-1))
+			    {
+				event=list->GetEntry(d_counter+k)+skip_pls;
+				d_counter+=(k+1);
+				break;
+			    }
 			}
 		    }
 		}
