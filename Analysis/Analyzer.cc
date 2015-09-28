@@ -4,6 +4,8 @@
 // Created: Fri Apr 10 14:50:00 2015 (-0400)
 // URL: latifkabir.github.io
 
+////===============>>>>> THIS IS VERY OLD VERSION OF analyzer.cc AND MESSY. USE OTHER ONE inside libn3He/src <<<<<=======================
+
 #include<iostream>
 #include<fstream>
 #include<iomanip>
@@ -19,7 +21,10 @@ using namespace std;
 #include<TEntryList.h>
 #include<TBranch.h>
 #include<TSystem.h>
-#include"Constants.h"
+
+void n3HeAnalyzer(int start_run,int stop_run);
+void Analyzer(int start_run=0,int stop_run=0);
+
 
 struct myData
 {
@@ -112,29 +117,72 @@ void n3HeAnalyzer(int start_run,int stop_run)
 
 	T->Draw(">>list_temp","sumd[0]<2000","entrylist");
 	TEntryList *list = (TEntryList*)gDirectory->Get("list_temp");
-	// list->Print("all"); //Print all events that are dropped pulses for verification.
-	int n_dpulses=list->GetN(); //Number of dropped pulses in the runNumber
-
-	int currentDroppedPulse,nextDroppedPulse;
-	currentDroppedPulse=nextDroppedPulse=list->GetEntry(0); //First dropped pulse
+	// list->Print("all"); //Print all events that are dropped pulses.
+	int n_dpulses=list->GetN(); //Number of dropped pulses in the run
+	int d_counter=0; //Counter for dropped pulses.
 
 	//=============Loop over all entries of the TTree or TChain to fill histogram or to do some analysis===============
+
 	int event=1; //Skip First event & start from second event as first one is just Run number flag.
 	int nentries=(b->GetEntries()-1); //Number of total events to be considered. Skip last one.
 
+	//If the any of the first two pulses is a dopped pilse, it would need to be bypassed carefully to be consistant with rest of the algorithm.
+	if(list->GetEntry(0)==0)
+	    event=-1;
+	if(list->GetEntry(0)==1)
+	    event=0;
+	if(list->GetEntry(1)==1)
+	{
+	    event=0;
+	    d_counter=1;
+	}
+
 	while(event < nentries) 
 	{
-	    //========================Skip dropped pulses========================
-	    if(event==nextDroppedPulse)
+	    //========================Skip pulses around dropped pulses========================
+
+	    if(d_counter<n_dpulses)
 	    {
-		currentDroppedPulse=nextDroppedPulse;
-		nextDroppedPulse=list->Next();
-		continue;   
+		if((event+1)==list->GetEntry(d_counter))  //Check if next pulse is a dropped pulse
+		{
+		    if((event+1)==list->GetEntry(n_dpulses-1)) //Check if its last dropped pulse
+		    {
+			if(list->GetEntry(n_dpulses-1)+skip_pls < nentries)
+			    event=list->GetEntry(n_dpulses-1)+skip_pls;
+			else
+			    event=-1;
+		    }
+		    else
+		    {
+			for(int k=0;k<(n_dpulses-d_counter);k++)   //Most likely case is k=0
+			{
+			    if((k+d_counter+1)==n_dpulses)
+			    {
+				if(list->GetEntry(n_dpulses-1)+skip_pls < nentries)
+				{
+				    event=list->GetEntry(n_dpulses-1)+skip_pls;
+				    break;
+				}
+				else
+				{
+				    event=-1;
+				    break;
+				}
+			    }
+			    
+			    if((list->GetEntry(d_counter+k)+skip_pls) < (list->GetEntry(d_counter+k+1)-1))
+			    {
+				event=list->GetEntry(d_counter+k)+skip_pls;
+				d_counter+=(k+1);
+				break;
+			    }
+			}
+		    }
+		}
 	    }
 
-	    //========================Skip pulses around dropped pulses========================
-	    if(event==nextDroppedPulse-1 || (event > currentDroppedPulse && event < (currentDroppedPulse+9)))
-		continue;
+	    if(event==-1)
+		break;
 
 	    if(event%2==1)  //Fill only unique pairs (Any one of the two set of pairs)
 	    {
@@ -170,7 +218,6 @@ void n3HeAnalyzer(int start_run,int stop_run)
 	}
 
 	myFile->Close();
-	delete list;
 	run_counter++;
 	cout << "Done with run number: "<<run<<"\n"<<endl;
     }

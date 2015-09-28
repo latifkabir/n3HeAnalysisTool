@@ -146,4 +146,4 @@ void AnalyzeChain(int start_run,int stop_run)
 
 //The rule of thumb is: For TTree use TEntryList
 // But for chain (which require global indexing) use TEventList
-
+//Note the Next() function for TEntryList only.
