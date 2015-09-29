@@ -29,8 +29,8 @@ void n3HeAnalyzer(int start_run,int stop_run)
 {
     // Create a histogram for the values we read.
     int n_bin=100;
-    double x_low=-0.05; 
-    double x_up=0.05;
+    double x_low=-0.5; //-0.05; 
+    double x_up=0.5;   //0.05;
     int skip_pls=9; //Skip dropped pulse including 1 before and 8 after (total 10 pulses).
     int run_counter=0;
     int n_adc=4; //Number of ADC
