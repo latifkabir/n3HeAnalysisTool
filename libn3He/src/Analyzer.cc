@@ -117,12 +117,17 @@ void n3HeAnalyzer(int start_run,int stop_run)
 
 	int currentDroppedPulse,nextDroppedPulse;
 	currentDroppedPulse=nextDroppedPulse=list->GetEntry(0); //First dropped pulse
+	int firstEvent=1;//Skip First event & start from second event as first one is just Run number flag.
 
 	//=============Loop over all entries of the TTree or TChain to fill histogram or to do some analysis===============
-	int event=1; //Skip First event & start from second event as first one is just Run number flag.
+	
 	int nentries=(b->GetEntries()-1); //Number of total events to be considered. Skip last one.
+	//If the first pulse is a dopped pilse, it would need to be bypassed carefully to be consistant with rest of the algorithm.
+	if(nextDroppedPulse==0)
+	    firstEvent=0;
 
-	while(event < nentries) 
+	
+	for(int event=firstEvent;event< nentries;event++) 
 	{
 	    //========================Skip dropped pulses========================
 	    if(event==nextDroppedPulse)
@@ -166,11 +171,10 @@ void n3HeAnalyzer(int start_run,int stop_run)
 		    }
 		}
 	    }
-	    event++;
 	}
 
 	myFile->Close();
-	delete list;
+	// delete list;
 	run_counter++;
 	cout << "Done with run number: "<<run<<"\n"<<endl;
     }
