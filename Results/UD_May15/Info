@@ -1,0 +1,31 @@
+Start Run: 20100
+Stop Run: 20500
+Number of Runs Analyzed: 277
+Number of skipped or Bad runs: 124
+Number of total entries considered: 3.40082e+06
+All histo within 0.05 limit.
+
+
+Raw Asym:
+root [1] MakePlot("asymmetry_final_20100-500.txt","raw")
+Total number of Entries 144
+
+****************************************
+Minimizer is Linear
+Chi2                      =      127.258
+NDf                       =          143
+p0                        =  1.79686e-08   +/-   1.95829e-08 
+
+Phy Asym:
+
+root [2] MakePlot("asymmetry_final_20100-500.txt","phy")
+Total number of Entries 144
+
+****************************************
+Minimizer is Linear
+Chi2                      =      128.043
+NDf                       =          143
+p0                        = -1.44034e-08   +/-   6.08324e-08 
+
+
+

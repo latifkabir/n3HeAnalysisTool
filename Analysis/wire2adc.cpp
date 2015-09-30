@@ -1,4 +1,4 @@
-// Filename: adc2wire.cpp
+// Filename: wire2adc.cpp
 // Description: 
 // Author: Latiful Kabir < siplukabir@gmail.com >
 // Created: Wed Apr 29 10:48:02 2015 (-0400)
@@ -53,9 +53,9 @@ void Wire_to_ADC(int &layer, int &wire)
 
 int main()
 {
-    int layer=0;
+    int layer=15;
     int wire=8;
     Wire_to_ADC(layer,wire);
-    cout<<"Layer: "<<layer<<" Wire: "<<wire<<endl;
+    cout<<"ADC: "<<layer<<" Channel: "<<wire<<endl;
     return 0;
 }
