@@ -12,6 +12,11 @@ void TTreeDraw()
 
     TCanvas *c1=new TCanvas();
     t->Draw("d21[][0]:49*Entry$+Iteration$","Entry$<5");
+
+    //Another trick is to plot signal vs Pulse pulse(Event number) but still plotting each time bin, in the following way
+    // t->Draw("d21[][0]:Entry$+Iteration$/49","Entry$<5"); //In this case your each time bin is one entry or pulse i.e. 16.66ms.
+                                                         //And inside each event, each 0.1 point is (16.66/49) ms. 
+
 }
 
 //Note : Entry$ = The event(pulse) variable

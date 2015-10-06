@@ -50,8 +50,7 @@ void Wire_to_ADC(int &layer, int &wire)
     wire=(wire>17) ? wire-6 : wire; //In my analysis channels are continuous.  
 }
 
-//In our wire map (ADC ch 0) wire-1 is beam top, but in the simulation (where in cos_theta theta is wrt +x axis), so positive values
-//represent beam top side. So the GF association needs to be corrected. just use (8-wire) in return statement for UD asymmetry. ?????
+//In our wire map (ADC ch 0) wire-1 is beam bottom and wire-9 is beam top, and in the simulation (where in cos_theta theta is wrt +x axis), so positive values represent beam top side. So the GF association needs to be multiplied accordingly.
 //For left we need to be sure which way it was rotated.
 
 double Gfactor(int layer, int wire)
