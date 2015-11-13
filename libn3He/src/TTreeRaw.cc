@@ -10,6 +10,13 @@
 #include <stdlib.h>
 #include <fstream>
 #include "CalOffset.h"
+
+#define DAQ21_LEAF "h21[48]/I:d21[49][48]/I"
+#define DAQ22_LEAF "h22[48]/I:d22[49][48]/I"
+#define DAQ23_LEAF "h23[48]/I:d23[49][48]/I"
+#define DAQ24_LEAF "h24[48]/I:d24[49][48]/I"
+#define DAQ30_LEAF "h30[2]/I:d30[1624][2]/I"
+
 void libn3He() {
 }
 ;
@@ -85,7 +92,7 @@ void TTreeRaw::Init(int runNumber)
 	dataFile[i]+=module[i];
     }
 
-    if(!(ifstream(dataFile[0]) && ifstream(dataFile[1]) && ifstream(dataFile[2]) && ifstream(dataFile[3]) && ifstream(dataFile[3])))
+    if(!(ifstream(dataFile[0]) && ifstream(dataFile[1]) && ifstream(dataFile[2]) && ifstream(dataFile[3]) && ifstream(dataFile[4])))
     {
 	cout<<"======================================"<<endl;
 	cout<<"No data files for requested run number"<<endl;
@@ -104,8 +111,8 @@ void TTreeRaw::Init(int runNumber)
 	
     if(offsetDaq21==0 || offsetDaq22 ==0 || offsetDaq23 ==0 || offsetDaq24 == 0 || offsetDaq30 == 0)
     {
-	offsetDaq21=offsetDaq22=offsetDaq23=offsetDaq24=4*9600; //Skip first 4 events: 50 samples/event x 4 events x 48 channels x e bytes/sample.
-	offsetDaq30=4*13000; //Skip first 4 events: 1625 samples/event x 4 events x 48 channels x e bytes/sample.
+	offsetDaq21=offsetDaq22=offsetDaq23=offsetDaq24=4*9600; //Skip first 4 events: 50 samples/event x 4 events x 48 channels x 4 bytes/sample.
+	offsetDaq30=4*13000; //Skip first 4 events: 1625 samples/event x 4 events x 48 channels x 4 bytes/sample.
 	cout<<"WARNING: You are using the library for a very old run number for which the library is NOT optimized."<<endl;
     }
     else

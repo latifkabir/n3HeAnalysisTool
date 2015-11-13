@@ -6,6 +6,5 @@
 
 void Wire_to_ADC(int &layer, int &wire);
 double Gfactor(int layer, int wire);
-void MakePlot(const char *fName="asymmetry.txt",const char *option="phy");
-
+void MakePlot(int level=0,const char *option="phy");
 

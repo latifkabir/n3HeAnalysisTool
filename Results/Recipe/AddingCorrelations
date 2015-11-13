@@ -1,0 +1,14 @@
+Hi Kabir,
+
+  Instead of just fitting the asymmetry from the ROOT error bars (which do not take into account correlations), try a weighted average according to the weights listed under "weight_i" in my simulation results: https://n3he.wikispaces.com/file/view/sim_2015-03-12/543921200/sim_2015-03-12
+That includes proper covariant weighting (albeit with the wrong rates in each cell).  At least it's a start.
+
+  Summary:   A = \frac{\sum_i w_i A_i}{\sum_i w_i}      dA^2 = \frac{1}{\sum_ij  Cov(A_i,A_j)^-1 }
+
+  Note in the above formulas, that A_i  =  raw asymmetry / geometry factor, what I call A'_i in my tech note.  I'm not worrying about polarization yet.  If you do not yet have all of the Covariances, you can estimate the the second formula by calculating  \sum_i (Var(A_i))^-1 ,  and then dividing by the correction ratio (diagonal to full matrix) from MC:   2.547.   Note this is a lot larger than my previous calculation (at 1 atm), because lower pressure gives a LOT more correlation in the wires!
+
+  Ideally if you have extracted the covariances from the data you can use the optimized weights     w_i = \sum_i {w_ij}    where w_ij = Inv(Cov(A_i, A_j)),  (including geometry factors), and get a better average and more realistic error bar.  You can also check the diagonal vs covariant ratio.
+
+  Another thing to try is to extract the asymmetry from different wires in each plane (2 outside ones,  next 2, etc.), and compare your results.
+
+--Chris

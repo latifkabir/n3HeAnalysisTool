@@ -1,42 +1,27 @@
-Instructions for n3He Library
-================================
+n3He Analysis Tools
+=====================
+n3He Analysis tool integrated in ROOT. Its an extension to ROOT with additional analysis functionality added required for the n3He experiment at Oak Ridge National Lab.
 
-0. Make any necessary changes in Constants.h file that is required.
+Instruction:
+--------------
+* Compile the make file inside libn3He directory.
+* Before you try it you MUST do the following:
+      1. Put the following command into your ~/.bashrc file:
 
-1. Do 'make' to compile the library. 
+           ```
+	      if [ -f /path/to/libn3He/bin/thisn3He.sh ]; then
 
-2. This will produce  libn3He.so (shared library will be inside lib directory).
+	      . /path/to/libn3He/bin/thisn3He.sh
 
-3. Place the .so file in a directory under LD_LIBRARY_PATH.
+	      fi
+           ```
 
-4. Now start root and load the Library as: gSystem->Load("libTree")  & gSystem->Load("libn3He.so")  . (For Online analysis)
-
-5.  For analysis from a script if you include TTree.h file then you need not to do gSystem->Load("libTree"); Just load 
-    gSystem->Load("libn3He.so").  You need to give full path unless the directory is included in LD_LIBRARY_PATH.
-
-6. If you put the rootlogon.C file in "macros" directory under Root installation directory, then the library will be loaded automatically 
-and step-4 is NOT necessary.
-
-7. Now from your root script create a Tree by calling: TTreeRaw *my_tree = new TreeRaw(runNumber#) or Just TTreeRaw t(runNumber#)
-
-8. It will also print the tree and branch structure.
-
-9. Now do what ever analysis you want using my_tree.
-
-10. Try running example analysis scripts in "analysis" directory.
-
-11. To make life easier it's convenient to put the following command into your ~/.bash_profile or ~/.bashrc file:
+	  2. Now copy the rootlogon.C file in the directory 'macros' under ROOT installation directory.  
+	  
+* Now from a new terminal start root doing "root -l".
+* For a list of available options Type "Help()"
 
  
-```
-if [ -f /path/to/libn3He/bin/thisn3He.sh ]; then 
-        . /path/to/libn3He/bin/thisn3He.sh
- fi 
-```
+![](../demo.jpg "n3He Analysis Tool in Action")
 
-Note: This version works both for ROOT 5 and ROOT 6.
 
-                                                                   
-
-										 Last Updated on 1/18/15
-                                                                                 -Latiful Kabir

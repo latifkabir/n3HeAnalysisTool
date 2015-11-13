@@ -20,6 +20,7 @@ using namespace std;
 #include<TBranch.h>
 #include<TSystem.h>
 #include"Constants.h"
+#include"HistoTree.h"
 
 struct myData
 {
@@ -29,12 +30,14 @@ void n3HeAnalyzer(int start_run,int stop_run)
 {
     // Create a histogram for the values we read.
     int n_bin=100;
-    double x_low=-0.5; //-0.05; 
-    double x_up=0.5;   //0.05;
+    double x_low=-0.5;  
+    double x_up=0.5;   
     int skip_pls=9; //Skip dropped pulse including 1 before and 8 after (total 10 pulses are skipped).
     int run_counter=0;
     int n_adc=4; //Number of ADC
     int n_ch=36; //Number of Channels
+    int level=0;  //Level of analysis accomplishment
+    char file_name[200];
 
     // =============Declare 4x36 Histograms in the heap to be filled=================
 
@@ -63,13 +66,9 @@ void n3HeAnalyzer(int start_run,int stop_run)
     int min_ch;
     int max_event;
     int min_event;
-    ofstream asymmetry("asymmetry.txt");
+    ofstream asymmetry;
 
-    if(!asymmetry)
-    {
-	cout<<"Unable to create asymmetry.txt file"<<endl;
-	return;
-    }
+
     for(int run=start_run;run<=stop_run;run++)
     {
 	//Generate the root file name for desired run
@@ -83,14 +82,11 @@ void n3HeAnalyzer(int start_run,int stop_run)
 	bool status=gSystem->AccessPathName(fName); //Note bizzare return type convention
 	if(!status) 
 	{
-	    cout << "=========================================================" <<endl;
-	    cout << "Now filling run number: "<<run<<endl;
-	    cout << "=========================================================\n" <<endl;
+	    cout << "Now filling run number: "<<run<< "... ...\t\t"<<flush;
 	}
 	else
 	{
-	    cout << "\n--------->The root file for run number :"<<run<<" does NOT exist<-------------" <<endl;
-	    cout << "--------->Skipping the run number : "<<run <<"<-------------\n"<<endl;
+	    cout << "The root file for run number :"<<run<<" does NOT exist.  SKIPPED " <<endl;
 	    continue;
 	}
 	TFile *myFile = TFile::Open(fName);
@@ -121,7 +117,7 @@ void n3HeAnalyzer(int start_run,int stop_run)
 
 	//=============Loop over all entries of the TTree or TChain to fill histogram or to do some analysis===============
 	
-	int nentries=(b->GetEntries()-1); //Number of total events to be considered. Skip last one.
+	int nentries=b->GetEntries(); //Number of total events to be considered.
 	//If the first pulse is a dopped pilse, it would need to be bypassed carefully to be consistant with rest of the algorithm.
 	if(nextDroppedPulse==0)
 	    firstEvent=0;
@@ -149,24 +145,18 @@ void n3HeAnalyzer(int start_run,int stop_run)
 		    for(int j=0;j<n_ch;j++)
 		    {
 			
-			myHist[i][j]->Fill(md.asym[i][j]);
+			myHist[i][j]->Fill(-1*md.asym[i][j]); // x(-1) to fix the fact that SF on is spin down & SF off is spin up
 
 			//Keep track of max and min asym for outliar
-			if(md.asym[i][j]>MaxAsym)
+			if(abs(-1*md.asym[i][j]) > x_up)
 			{
-			    MaxAsym=md.asym[i][j];
-			    max_run=run;
-			    max_adc=i;
-			    max_ch=j;
-			    max_event=event;
-			}
-			if(md.asym[i][j]<MinAsym)
-			{
-			    MinAsym=md.asym[i][j];
-			    min_run=run;
-			    min_adc=i;
-			    min_ch=j;
-			    min_event=event;
+			    cout << "\nThe Run Number:"<<run << " has asymmmetry "<< -1*md.asym[i][j] << " which is greater than "<< x_up<<endl;
+			    cout << "This happens for ADC: "<<i <<" Channel: "<<j<<" Event: "<<event<<endl;
+			    cout << "You should investigate before proceeding" <<endl;
+			    cout << "Aborting the analysis :) ... ... "<<endl;
+			    myFile->Close();
+			    asymmetry.close();
+			    return;
 			}
 		    }
 		}
@@ -174,23 +164,18 @@ void n3HeAnalyzer(int start_run,int stop_run)
 	}
 
 	myFile->Close();
-	// delete list;
 	run_counter++;
-	cout << "Done with run number: "<<run<<"\n"<<endl;
+	cout << " DONE!! "<<endl;
     }
 
-    //=================Check for Histogram range =========================
-
-    if(abs(MaxAsym) > x_up || MinAsym < x_low)
+    if(run_counter>0)
     {
-    	cout << "MaxAsym: "<<MaxAsym <<endl;
-	cout << "MaxRun: "<<max_run<<" MaxADC: "<<max_adc<<" MaxCh: "<<max_ch<<" Event: "<<max_event<<endl;
-    	cout << "MinAsym: "<<MinAsym <<endl;
-	cout << "MinRun: "<<min_run<<" MinADC: "<<min_adc<<" MinCh: "<<min_ch<<" Event: "<<min_event<<endl;
-    	cout << "x_up:"<<x_up <<endl;
-    	cout << "x_low:"<<x_low <<endl;
-    	cout<<"Please adjust the range of the histogram to cover all events"<<endl;
+	cout << "To save this analysis as Accomplishment, Enter non-zero level number:" <<endl;
+	cin>>level;
+	if(level!=0)
+	    SaveHisto(level,start_run,stop_run,run_counter,myHist);
     }
+
     //========Draw the histo and extract desired param==================
     myHist[0][35]->Draw();
     // cout << "Mean:"<<myHist[0][5]->GetMean() <<endl;
@@ -199,6 +184,16 @@ void n3HeAnalyzer(int start_run,int stop_run)
     // cout << "Entries:"<<myHist[0][5]->GetEntries() <<endl;
     // cout << "MaxAsym:"<<MaxAsym <<endl;
     // cout << "MinAsym:"<<MinAsym <<endl;
+
+    sprintf(file_name,ASYM_FILE,level);
+    asymmetry.open(file_name);
+
+    if(!asymmetry)
+    {
+	cout<<"Unable to create asymmetry record file"<<endl;
+	return;
+    }
+
 
     for(int i=0;i<n_adc;i++)
     {
@@ -223,7 +218,7 @@ void n3HeAnalyzer(int start_run,int stop_run)
 void Analyzer(int start_run=0,int stop_run=0) 
 {
 
-    if(start_run<=0 || stop_run<=0)
+    if(start_run<=0 || stop_run<=0 || start_run > stop_run)
     {
 	cout<<"Please enter a valid run range"<<endl;
 	return;

@@ -14,7 +14,7 @@ void n3HeChain()
     chain.Add("run-26250.root");
 
     //======Create a main list of events with odd or even events only and also skip events (first event of root file) having run number as flag===== 
-    chain.Draw(">>list_temp1","Entry$%24991!=0 && Entry$%2==1","eventlist");
+    chain.Draw(">>list_temp1","Entry$%24991!=0 && (Entry$%24991)%2==1","eventlist");
     TEventList *list1 = (TEventList*)gDirectory->Get("list_temp1");
     
     //We Can compare the list for verification
@@ -32,16 +32,23 @@ void n3HeChain()
     TEventList *list3=new TEventList();
     int sEvt;
     int k=0;
+    int skip_max=9;  //Maximum number of pulses to be skipped after dropped pulses.
     
     while(k<list2->GetN())
     {
 	sEvt=list2->GetEntry(k);
 	// cout << "Event:"<<sEvt <<endl;
-	for(int i=-1;i<8;i++)
+
+        //Take Care of End Effect
+	if((sEvt%24991+skip_max)>24991)  //24991 is the number of entries in one root file.
+	    skip_max=(24991-(sEvt%24991));
+
+	for(int i=-1;i<skip_max;i++)
 	{
 	    if(i!=0)
 		list3->Enter(sEvt+i);
 	}
+	skip_max=9;
 	k++;
     }
 

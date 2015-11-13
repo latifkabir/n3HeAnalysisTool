@@ -34,7 +34,7 @@ fi
 7. Modify the .desktop file and .sh file in bin directory accordingly and place it in your desktop if you want to run the GUI just by double clicking from your desktop.
 
 8. Screenshot:
-![](n3HeData/demo_n3HeDataBrowser.png "n3He Data Browser")
+![](./demo_n3HeDataBrowser.png "n3He Data Browser")
 
 
 Note: This version works both for ROOT 5 and ROOT 6.

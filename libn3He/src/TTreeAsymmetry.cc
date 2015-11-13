@@ -183,8 +183,8 @@ void TTreeAsymmetry::FillDirty(TBranch *b,int entry,double *sumd,int &spin)
 
 void TTreeAsymmetry::FillAsym(int entry,double sumc[][36],double sumc_prev[][36],double norm,double norm_prev,int spin,int spin_prev,double asym[][36])
 {
-    double up;
-    double down;
+    double up;  // By up I actually mean RFSF ON state in this script.
+    double down; // By down I actually mean RFSF OFF state in this script.
 
     for(int i=0;i<4;i++)
     {
@@ -197,11 +197,15 @@ void TTreeAsymmetry::FillAsym(int entry,double sumc[][36],double sumc_prev[][36]
 		up=sumc[i][nch]/norm;
 		down=sumc_prev[i][nch]/norm_prev;
 		if(spin==1 && spin_prev==0)
-		    asym[i][nch]=(up - down)/(up + down);
+		    asym[i][nch]=(up - down)/(up + down);  //This is actually (SF_on -SF_off) which corresponds to (Spin_down - Spin_up), So we need to correct the sign while filling histogram.  
 		else if(spin==0 && spin_prev==1)
 		    asym[i][nch]=(down - up)/(up + down);
 		else
+		{
 		    asym[i][nch]=-1.0;
+		    fill_status=false;
+		    error_code=-8;
+		}
 	    }
     	}
     }
@@ -359,6 +363,18 @@ void TTreeAsymmetry::MakeTree()
 	case -5:
 	    cout << "The run "<<run<<" has synchronization issue among all  five DAQs" <<endl;
 	    break;
+	case -6:
+	    cout << "The run "<<run<<" has NO data files on disk." <<endl;
+	    break;
+	case -7:
+	    cout << "The run "<<run<<" has wrong chopper phases." <<endl;
+	    break;
+	case -8:
+	    cout << "The run "<<run<<" has wrong RFSF phases." <<endl;
+	    break;
+	case -9:
+	    cout << "The run "<<run<<" has hi voltage turned off." <<endl;
+	    break;
 	default:
 	    cout<<"The run "<<run<<" is GOOD. Done making root file"<<endl;
 	}
@@ -371,7 +387,7 @@ void TTreeAsymmetry::MakeTree()
 }
 
 
-//Typical sumd[0] is ~3400 Volts
-//Typical sumd[0] for dropped pulses is ~340 volts
+//Typical sumd[0] is ~3400 Volts at 840KW beam power.
+//Typical sumd[0] for dropped pulses is ~340 volts at 840KW beam power. 
 //At 850KW max d30[][0] signal 500-600 x 10^6
 //For dropped pulses average d30[][0] < 5 x10^7

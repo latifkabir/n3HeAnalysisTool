@@ -34,7 +34,7 @@ void AnalyzeChain(int start_run,int stop_run)
 
     ofstream asymmetry("asymmetry.txt");
 
-    TH1D *h=new TH1D("h","h",100,-0.05,0.05);
+    TH1D *h=new TH1D("h","h",100,-0.5,0.5);
 
     if(!asymmetry)
     {
@@ -66,7 +66,7 @@ void AnalyzeChain(int start_run,int stop_run)
 
 
     //======Create a main list of events with odd or even events only and also skip events (first event of root file) having run number as flag===== 
-    chain.Draw(">>list_temp1","Entry$%24991!=0 && Entry$%2==1","eventlist");
+    chain.Draw(">>list_temp1","Entry$%24991!=0 && (Entry$%24991)%2==1","eventlist"); //24991 is the number of entries in one root file.
     TEventList *list1 = (TEventList*)gDirectory->Get("list_temp1");
     
     //We Can compare the list for verification
@@ -82,14 +82,19 @@ void AnalyzeChain(int start_run,int stop_run)
     //=====Create another list having events around dropped pulses.====================
     //(Adding these events dynamicly to the same list of dropped pulses did NOT work)
     TEventList *list3=new TEventList();
-    int sEvt;
+    int sEvt; //Event corresponding to dropped pulse
     int k=0;
-    
+    int skip_max=9;  //Maximum number of pulses to be skipped after dropped pulses.
+
     while(k<list2->GetN())
     {
 	sEvt=list2->GetEntry(k);
 	// cout << "Event:"<<sEvt <<endl;
-	for(int i=-1;i<9;i++)
+        //Take Care of End Effect
+	if((sEvt%24991+skip_max)>24991)  //24991 is the number of entries in one root file.
+	    skip_max=(24991-(sEvt%24991));
+
+	for(int i=-1;i<skip_max;i++)
 	{
 	    if(sEvt==0 && i==-1)
 		continue;
@@ -99,6 +104,7 @@ void AnalyzeChain(int start_run,int stop_run)
 	    if(i!=0)
 		list3->Enter(sEvt+i);
 	}
+	skip_max=9;
 	k++;
     }
 
@@ -117,7 +123,8 @@ void AnalyzeChain(int start_run,int stop_run)
     {
 	for(int ch=0;ch<36;ch++)
 	{
-	    chain.Draw(Form("asym[%i][%i]>>h",adc,ch),"","goff");  //goff disables drawing(showing) graphics(plots)
+	    chain.Draw(Form("-asym[%i][%i]>>h",adc,ch),"","goff");  //goff disables drawing(showing) graphics(plots) 
+                                                                    // x(-1) to fix the fact that SF on is spin down & SF off is spin up
 
 	    asymmetry<<setw(10);
 	    asymmetry<<setprecision(8);

@@ -5,3 +5,4 @@
  // URL: latifkabir.github.io
 
 void Help();
+void n3HeChainHelp();

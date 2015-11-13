@@ -1,5 +1,5 @@
 // Filename: wire2adc.cpp
-// Description: 
+// Description: Wire/Layer number to ADC channel map. 
 // Author: Latiful Kabir < siplukabir@gmail.com >
 // Created: Wed Apr 29 10:48:02 2015 (-0400)
 // URL: latifkabir.github.io

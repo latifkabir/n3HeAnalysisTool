@@ -68,11 +68,11 @@ void n3HeChain::Init(int start_run,int stop_run)
     cout << "Total Root files added in the Chain:"<<count_chain<<endl;
 
     //======Create the list of events with odd events only and also skip events (first event of root file) having run number as flag===== 
-    this->Draw(">>list_temp1","Entry$%24991!=0 && Entry$%2==1","eventlist");
+    this->Draw(">>list_temp1","Entry$%24991!=0 && (Entry$%24991)%2==1","eventlist");
     oddList = (TEventList*)gDirectory->Get("list_temp1");
 
     //======Create the list of events with even events only and also skip events (first event of root file) having run number as flag===== 
-    this->Draw(">>list_temp2","Entry$%24991!=0 && Entry$%2==0","eventlist");
+    this->Draw(">>list_temp2","Entry$%24991!=0 && (Entry$%24991)%2==0","eventlist");
     evenList = (TEventList*)gDirectory->Get("list_temp2");
 
     //===========Create the list having all dropped pulses events======================
@@ -86,11 +86,18 @@ TEventList* n3HeChain::GenerateCut()
     //=====Create the list having events around dropped pulses.====================
     int sEvt;
     int k=0;
+    int skip_max=9;  //Maximum number of pulses to be skipped after dropped pulses.
+
+
     while(k<droppedPulses->GetN())
     {
     	sEvt=droppedPulses->GetEntry(k);
     	// cout << "Event:"<<sEvt <<endl;
-    	for(int i=-1;i<9;i++)
+        //Take Care of End Effect
+	if((sEvt%24991+skip_max)>24991)  //24991 is the number of entries in one root file.
+	    skip_max=(24991-(sEvt%24991));
+
+    	for(int i=-1;i<skip_max;i++)
     	{
 	    if(sEvt==0 && i==-1)
 		continue;
@@ -99,6 +106,7 @@ TEventList* n3HeChain::GenerateCut()
 	    
 	    cut->Enter(sEvt+i);
     	}
+	skip_max=9;
     	k++;
     }
     return cut;

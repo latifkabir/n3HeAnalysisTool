@@ -41,7 +41,7 @@ void beamPowerDist()
 	TTree *t=(TTree*)myFile->Get("T");
 	// T->Print();
 	TH1D *h=new TH1D("h","h",100,0,6500);
-	t->Draw("sumd[0]>>h");
+	t->Draw("sumd[0]>>h","","goff");
 	h->Draw();
 	ave_power=(850.0/3500.0)*h->GetMean(1); // Assume that 3500 Volt  per pulse (i.e. 3500/1624 =2.15 volt per tbin) corresponds to 850 KWatt power
 	cout << "Mean Power:"<<ave_power<<" KWatt" <<endl;

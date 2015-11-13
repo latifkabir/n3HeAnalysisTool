@@ -29,6 +29,23 @@ void Help()
     cout<<"\t\t---The n3HeChain (a TChain) Class:"<<endl;
     cout<<"\t\t  --To Create TChain object out of root files:" <<endl;
     cout<<"\t\t\tn3HeChain myChain(int start_run,int stop_run)" <<endl;
+    cout<<"\t\t\tTo see n3HeChain class structure type:\"n3HeChainHelp()\"" <<endl<<endl;
+    cout<<"\t\t---To Get Geometry Factor of specific layer and wier:" <<endl;
+    cout << "\t\t\tGFactor(int layer, int wire)" <<endl<<endl;
+    cout<<"\t\t---To convert layer and wire to ADC and channel number:" <<endl;
+    cout << "\t\t\tWire2adc(int &layer, int &wire)" <<endl;
+    cout << "\t\t\tNote: ADC runs 0 to 3 and channes 0 to 35 and continuous" <<endl<<endl;
+    cout<<"\t\t---To plot intensity distribution of desired run and event:" <<endl;
+    cout << "\t\t\tPlotIntensity(int run,int event=0)" <<endl<<endl;
+    cout<<"\t\t---To make histogram of beam power distribution over a range of runs:" <<endl;
+    cout << "\t\t\tBeamPowerDist(int start_run,int stop_run)" <<endl<<endl;
+    cout<<"\t\t---For detailed instruction and sample analysis:" <<endl;
+    cout << "\t\t\tCheck Analysis Manual on n3He Software Git page." <<endl;
+}
+
+
+void n3HeChainHelp()
+{
     cout<<"\t\t  --Following is the n3HeChain class structure:" <<endl;
     cout<<"\n";
     cout<<"\t\t\tpublic:"<<endl;
@@ -49,6 +66,4 @@ void Help()
     cout<<"\t\t\tint GetRunNumber(int globalEntry);"<<endl;
     cout<<"\t\t\tTTreeRaw* GetTTreeRaw(int globalEntry);"<<endl;
     cout<<"\t\t\t~n3HeChain();"<<endl<<endl;
-    cout<<"\t\t---For detailed instruction and sample analysis:" <<endl;
-    cout << "\t\t\tCheck Analysis Manual on n3He Software Git page." <<endl;
 }
