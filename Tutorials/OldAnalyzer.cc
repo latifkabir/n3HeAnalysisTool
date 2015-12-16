@@ -4,6 +4,8 @@
 // Created: Fri Apr 10 14:50:00 2015 (-0400)
 // URL: latifkabir.github.io
 
+////===============>>>>> THIS IS VERY OLD VERSION OF analyzer.cc AND MESSY. USE OTHER ONE inside libn3He/src <<<<<=======================
+
 #include<iostream>
 #include<fstream>
 #include<iomanip>
@@ -19,26 +21,25 @@ using namespace std;
 #include<TEntryList.h>
 #include<TBranch.h>
 #include<TSystem.h>
-#include<TCut.h>
-#include"Constants.h"
-#include"HistoTree.h"
+
+void n3HeAnalyzer(int start_run,int stop_run);
+void Analyzer(int start_run=0,int stop_run=0);
+
 
 struct myData
 {
     double asym[4][36];
 }; 
-void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off) 
+void n3HeAnalyzer(int start_run,int stop_run) 
 {
     // Create a histogram for the values we read.
     int n_bin=100;
-    double x_low=-0.5;  
-    double x_up=0.5;   
-    int skip_pls=skip_pulses; //Skip dropped pulse including 1 before and 8 after (total 10 pulses are skipped).
+    double x_low=-0.5; 
+    double x_up=0.5;
+    int skip_pls=9; //Skip dropped pulse including 1 before and 8 after (total 10 pulses).
     int run_counter=0;
     int n_adc=4; //Number of ADC
     int n_ch=36; //Number of Channels
-    int level=0;  //Level of analysis accomplishment
-    char file_name[200];
 
     // =============Declare 4x36 Histograms in the heap to be filled=================
 
@@ -67,9 +68,13 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off)
     int min_ch;
     int max_event;
     int min_event;
-    ofstream asymmetry;
+    ofstream asymmetry("asymmetry.txt");
 
-
+    if(!asymmetry)
+    {
+	cout<<"Unable to create asymmetry.txt file"<<endl;
+	return;
+    }
     for(int run=start_run;run<=stop_run;run++)
     {
 	//Generate the root file name for desired run
@@ -83,11 +88,14 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off)
 	bool status=gSystem->AccessPathName(fName); //Note bizzare return type convention
 	if(!status) 
 	{
-	    cout << "Now filling run number: "<<run<< "... ...\t\t"<<flush;
+	    cout << "=========================================================" <<endl;
+	    cout << "Now filling run number: "<<run<<endl;
+	    cout << "=========================================================\n" <<endl;
 	}
 	else
 	{
-	    cout << "The root file for run number :"<<run<<" does NOT exist.  SKIPPED " <<endl;
+	    cout << "\n--------->The root file for run number :"<<run<<" does NOT exist<-------------" <<endl;
+	    cout << "--------->Skipping the run number : "<<run <<"<-------------\n"<<endl;
 	    continue;
 	}
 	TFile *myFile = TFile::Open(fName);
@@ -106,40 +114,75 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off)
 	b->SetAddress(&md.asym[0][0]);
 
 	//================== Get the drop pulses information=======================
-	TCut droppedCut = Form("sumd[0]<%i",cut_off);
-	T->Draw(">>list_temp",droppedCut,"entrylist");
-	TEntryList *list = (TEntryList*)gDirectory->Get("list_temp");
-	// list->Print("all"); //Print all events that are dropped pulses for verification.
-	int n_dpulses=list->GetN(); //Number of dropped pulses in the runNumber
 
-	int currentDroppedPulse,nextDroppedPulse;
-	currentDroppedPulse=nextDroppedPulse=list->GetEntry(0); //First dropped pulse
-	int firstEvent=1;//Skip First event & start from second event as first one is just Run number flag.
+	T->Draw(">>list_temp","sumd[0]<2000","entrylist");
+	TEntryList *list = (TEntryList*)gDirectory->Get("list_temp");
+	// list->Print("all"); //Print all events that are dropped pulses.
+	int n_dpulses=list->GetN(); //Number of dropped pulses in the run
+	int d_counter=0; //Counter for dropped pulses.
 
 	//=============Loop over all entries of the TTree or TChain to fill histogram or to do some analysis===============
-	
-	int nentries=b->GetEntries(); //Number of total events to be considered.
-	//If the first pulse is a dopped pilse, it would need to be bypassed carefully to be consistant with rest of the algorithm.
-	if(nextDroppedPulse==0)
-	    firstEvent=0;
 
-	
-	for(int event=firstEvent;event< nentries;event++) 
+	int event=1; //Skip First event & start from second event as first one is just Run number flag.
+	int nentries=(b->GetEntries()-1); //Number of total events to be considered. Skip last one.
+
+	//If the any of the first two pulses is a dopped pilse, it would need to be bypassed carefully to be consistant with rest of the algorithm.
+	if(list->GetEntry(0)==0)
+	    event=-1;
+	if(list->GetEntry(0)==1)
+	    event=0;
+	if(list->GetEntry(1)==1)
 	{
-	    //========================Skip dropped pulses========================
-	    if(event==nextDroppedPulse)
+	    event=0;
+	    d_counter=1;
+	}
+
+	while(event < nentries) 
+	{
+	    //========================Skip pulses around dropped pulses========================
+
+	    if(d_counter<n_dpulses)
 	    {
-		currentDroppedPulse=nextDroppedPulse;
-		nextDroppedPulse=list->Next();
-		continue;   
+		if((event+1)==list->GetEntry(d_counter))  //Check if next pulse is a dropped pulse
+		{
+		    if((event+1)==list->GetEntry(n_dpulses-1)) //Check if its last dropped pulse
+		    {
+			if(list->GetEntry(n_dpulses-1)+skip_pls < nentries)
+			    event=list->GetEntry(n_dpulses-1)+skip_pls;
+			else
+			    event=-1;
+		    }
+		    else
+		    {
+			for(int k=0;k<(n_dpulses-d_counter);k++)   //Most likely case is k=0
+			{
+			    if((k+d_counter+1)==n_dpulses)
+			    {
+				if(list->GetEntry(n_dpulses-1)+skip_pls < nentries)
+				{
+				    event=list->GetEntry(n_dpulses-1)+skip_pls;
+				    break;
+				}
+				else
+				{
+				    event=-1;
+				    break;
+				}
+			    }
+			    
+			    if((list->GetEntry(d_counter+k)+skip_pls) < (list->GetEntry(d_counter+k+1)-1))
+			    {
+				event=list->GetEntry(d_counter+k)+skip_pls;
+				d_counter+=(k+1);
+				break;
+			    }
+			}
+		    }
+		}
 	    }
 
-	    //========================Skip pulses around dropped pulses========================
-	    if(event==nextDroppedPulse-1 || (event > currentDroppedPulse && event < (currentDroppedPulse+skip_pls)))
-		continue;
-
-	    if(event<8)  //Skip first 8 pulses of the run in case there was a dropped pulse just before start of the run.
-		continue;
+	    if(event==-1)
+		break;
 
 	    if(event%2==1)  //Fill only unique pairs (Any one of the two set of pairs)
 	    {
@@ -149,37 +192,48 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off)
 		    for(int j=0;j<n_ch;j++)
 		    {
 			
-			myHist[i][j]->Fill(-1*md.asym[i][j]); // x(-1) to fix the fact that SF on is spin down & SF off is spin up
+			myHist[i][j]->Fill(md.asym[i][j]);
 
 			//Keep track of max and min asym for outliar
-			if(abs(-1*md.asym[i][j]) > x_up)
+			if(md.asym[i][j]>MaxAsym)
 			{
-			    cout << "\nThe Run Number:"<<run << " has asymmmetry "<< -1*md.asym[i][j] << " which is greater than "<< x_up<<endl;
-			    cout << "This happens for ADC: "<<i <<" Channel: "<<j<<" Event: "<<event<<endl;
-			    cout << "You should investigate before proceeding" <<endl;
-			    cout << "Aborting the analysis :) ... ... "<<endl;
-			    myFile->Close();
-			    asymmetry.close();
-			    return;
+			    MaxAsym=md.asym[i][j];
+			    max_run=run;
+			    max_adc=i;
+			    max_ch=j;
+			    max_event=event;
+			}
+			if(md.asym[i][j]<MinAsym)
+			{
+			    MinAsym=md.asym[i][j];
+			    min_run=run;
+			    min_adc=i;
+			    min_ch=j;
+			    min_event=event;
 			}
 		    }
 		}
 	    }
+	    event++;
 	}
 
 	myFile->Close();
 	run_counter++;
-	cout << " DONE!! "<<endl;
+	cout << "Done with run number: "<<run<<"\n"<<endl;
     }
 
-    if(run_counter>0)
+    //=================Check for Histogram range =========================
+
+    if(abs(MaxAsym) > x_up || MinAsym < x_low)
     {
-	cout << "To save this analysis as Accomplishment, Enter non-zero level number:" <<endl;
-	cin>>level;
-	if(level!=0)
-	    SaveHisto(level,start_run,stop_run,run_counter,myHist);
+    	cout << "MaxAsym: "<<MaxAsym <<endl;
+	cout << "MaxRun: "<<max_run<<" MaxADC: "<<max_adc<<" MaxCh: "<<max_ch<<" Event: "<<max_event<<endl;
+    	cout << "MinAsym: "<<MinAsym <<endl;
+	cout << "MinRun: "<<min_run<<" MinADC: "<<min_adc<<" MinCh: "<<min_ch<<" Event: "<<min_event<<endl;
+    	cout << "x_up:"<<x_up <<endl;
+    	cout << "x_low:"<<x_low <<endl;
+    	cout<<"Please adjust the range of the histogram to cover all events"<<endl;
     }
-
     //========Draw the histo and extract desired param==================
     myHist[0][35]->Draw();
     // cout << "Mean:"<<myHist[0][5]->GetMean() <<endl;
@@ -188,16 +242,6 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off)
     // cout << "Entries:"<<myHist[0][5]->GetEntries() <<endl;
     // cout << "MaxAsym:"<<MaxAsym <<endl;
     // cout << "MinAsym:"<<MinAsym <<endl;
-
-    sprintf(file_name,ASYM_FILE,level);
-    asymmetry.open(file_name);
-
-    if(!asymmetry)
-    {
-	cout<<"Unable to create asymmetry record file"<<endl;
-	return;
-    }
-
 
     for(int i=0;i<n_adc;i++)
     {
@@ -219,19 +263,13 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off)
     delete[] myHist;
 }
 
-void Analyzer(int start_run,int stop_run,int skip_pulses,int cut_off) 
+void Analyzer(int start_run=0,int stop_run=0) 
 {
 
-    cout << "\n===============Printing for record============"<<endl;
-    cout << "Start run: "<<start_run <<"  Stop run: "<<stop_run<<endl;
-    cout << "Pulses to be skipped after dropped: "<<skip_pulses <<endl;
-    cout << "Cut off for dropped or low beam pulse: "<<cut_off<<" Volts" <<endl;
-    cout << "==============================================" <<endl<<endl;
-
-    if(start_run<=0 || stop_run<=0 || start_run > stop_run)
+    if(start_run<=0 || stop_run<=0)
     {
 	cout<<"Please enter a valid run range"<<endl;
 	return;
     }
-    n3HeAnalyzer(start_run,stop_run,skip_pulses,cut_off);
+    n3HeAnalyzer(start_run,stop_run);
 }

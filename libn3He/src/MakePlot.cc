@@ -11,13 +11,13 @@ using namespace std;
 #include"GFactor.h"
 #include"Constants.h"
 
-void MakePlot(int level=0,const char *option="phy")
+void MakePlot(int level,const char *option,const char *file_name)
 {
     char fName[200];
     //Generate the root file name for desired run
     if(level>=0)
 	sprintf(fName,ASYM_FILE,level);
-    else
+    if(level<-1) 
     {
 	cout<<"Invalid level."<<endl;
 	return;
@@ -29,7 +29,11 @@ void MakePlot(int level=0,const char *option="phy")
     double adc[150],channel[150],mean[150],error[150],rms[150];
     int index=0;
 
-    data.open(fName);
+    if(level>=0)
+	data.open(fName);
+    else if(level==-1)
+	data.open(file_name);
+
     if(!data)
     {
 	cout << "The data file does NOT exist" <<endl;

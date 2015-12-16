@@ -7,6 +7,8 @@
 #define DATA_PATH4 "/mnt/idata04/data/"
 #define DATA_PATH5 "/mnt/idata05/data/"
 #define DATA_PATH6 "/mnt/idata06/data/"
+#define DATA_PATH7 "/mnt/idata07/data/"
+#define DATA_PATH8 "/mnt/idata08/data/"
 
 #define ROOT_FILE_PATH "/mnt/idata05/summary/"
 #define RUN_LIST "/mnt/idata05/summary/runList.txt"

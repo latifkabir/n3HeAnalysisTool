@@ -16,9 +16,12 @@
 #pragma link C++ function Wire2adc;
 #pragma link C++ function PlotIntensity;
 #pragma link C++ function BeamPowerDist;
+#pragma link C++ function CalInstAsym;
+#pragma link C++ function FxAnalyzer;
 #pragma link C++ class TTreeRaw;
 #pragma link C++ class TTreeAsymmetry;
 #pragma link C++ class TBranchBinary;
 #pragma link C++ class n3HeChain;
+#pragma link C++ class InstAsym;
 
 #endif

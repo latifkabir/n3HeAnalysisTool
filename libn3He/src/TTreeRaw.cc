@@ -69,12 +69,15 @@ void TTreeRaw::Init(int runNumber)
     	dataPath=DATA_PATH4;
     else if(runNumber > 44385 && runNumber < 46000)
     	dataPath=DATA_PATH5;
-    else if(runNumber > 45999)
+    else if(runNumber > 45999 && runNumber< 54041)
     	dataPath=DATA_PATH6;
+    else if(runNumber > 54040 && runNumber < 58960)
+    	dataPath=DATA_PATH7;
+    else if(runNumber > 58959)
+    	dataPath=DATA_PATH8;
     else
     	dataPath=DATA_PATH;
 //------------------Get the Leaf list-------------------------------
-
     DaqLeaf[0]=DAQ21_LEAF;
     DaqLeaf[1]=DAQ22_LEAF;
     DaqLeaf[2]=DAQ23_LEAF;
@@ -127,27 +130,27 @@ void TTreeRaw::Init(int runNumber)
 //-------------Add the Branches to this tree-----------------------------------
  
 //------------Brach for daq-21------------                            
-    cout << "Reading clean daq file: " << dataFile[0] << endl;
+    // cout << "Reading clean daq file: " << dataFile[0] << endl;
     b21 = new TBranchBinary(this,dataFile[0],DaqLeaf[0],"b21", -1, 0,offsetDaq21);
     this->GetListOfBranches()->Add(b21);
 
 //-----------Branch for daq-22-------------                                                     
-    cout << "Reading clean daq file: " << dataFile[1] << endl;
+    // cout << "Reading clean daq file: " << dataFile[1] << endl;
     b22 = new TBranchBinary(this,dataFile[1],DaqLeaf[1],"b22", -1, 0,offsetDaq22);
     this->GetListOfBranches()->Add(b22);
 
 //----------Branch for daq-23--------------                                                            
-    cout << "Reading clean daq file: " << dataFile[2] << endl;
+    // cout << "Reading clean daq file: " << dataFile[2] << endl;
     b23 = new TBranchBinary(this,dataFile[2],DaqLeaf[2],"b23", -1, 0,offsetDaq23);
     this->GetListOfBranches()->Add(b23);
 
 //--------Branch for daq-24----------------                                                            
-    cout << "Reading clean daq file: " << dataFile[3] << endl;
+    // cout << "Reading clean daq file: " << dataFile[3] << endl;
     b24 = new TBranchBinary(this,dataFile[3],DaqLeaf[3],"b24", -1, 0,offsetDaq24);
     this->GetListOfBranches()->Add(b24);
 
 //--------Branch for daq-30---------------
-    cout << "Reading dirty daq file: " <<dataFile[4] << endl;
+    // cout << "Reading dirty daq file: " <<dataFile[4] << endl;
     b30 = new TBranchBinary(this,dataFile[4],DaqLeaf[4],"b30", -1, 0,offsetDaq30); 
     this->GetListOfBranches()->Add(b30);
 

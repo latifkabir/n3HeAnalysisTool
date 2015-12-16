@@ -20,43 +20,80 @@
 using namespace std;
 
 
-TTreeAsymmetry::TTreeAsymmetry(int runNumber)
+TTreeAsymmetry::TTreeAsymmetry(int runNumber , bool saveTree)
 { 
-    run=runNumber;   
+    save_tree=saveTree;
+    Init(runNumber);
+
+    if(save_tree)
+	InitRootFile();
+    
+    ctbin_i=0;  // Clean data first time bin  
+    ctbin_f=48; //Clean data last time bin
+    dtbin_i=0; // Dirty data first time bin
+    dtbin_f=1623; //Dirty data last time bin
+    ntbin_c=(ctbin_f-ctbin_i+1); //Clean data number of time bins per event
+    ntbin_d=(dtbin_f-dtbin_i+1); //Dirty data number of time bins per event
+}
+
+TTreeAsymmetry::TTreeAsymmetry(int runNumber , bool saveTree,int ctb_i, int ctb_f)
+{ 
+    save_tree=saveTree;
+    Init(runNumber);
+
+    if(save_tree)
+	InitRootFile();
+    
+    ctbin_i=ctb_i;  // Clean data first time bin  
+    ctbin_f=ctb_f; //Clean data last time bin
+    dtbin_i=0; // Dirty data first time bin
+    dtbin_f=1623; //Dirty data last time bin
+    ntbin_c=(ctbin_f-ctbin_i+1); //Clean data number of time bins per event
+    ntbin_d=(dtbin_f-dtbin_i+1); //Dirty data number of time bins per event
+}
+
+
+
+TTreeAsymmetry::~TTreeAsymmetry()
+{
+    delete det_data;
+    delete dir_data;
+    delete t;
+    if(!save_tree)
+	delete T;
+    if(save_tree)
+    {
+	f->Close();
+	delete f;
+    }
+    // delete T; //deleting TFile will automatically delete T, so deleting again will give rise to crash in loop.
+}
+
+void TTreeAsymmetry::Init(int run_number)
+{
+    run=run_number;   
     det_data=new detData;
     dir_data=new dirData;
     t=new TTreeRaw(run);
-    fName=ROOT_FILE_PATH;
-    fName+="run-";
-    fName+=run;
-    fName+=".root";
-    f=new TFile(fName,"recreate");
     T=new TTree("T","My n3He Tree");
 
     fill_status=true; //Whether to continue fillling tree
     error_code=1;
-    nevents=24991;
-
-    ctbin_i=0;  // Clean data first time bin  
-    ctbin_f=49; //Clean data last time bin
-    dtbin_i=0; // Dirty data first time bin
-    dtbin_f=1624; //Dirty data last time bin
-    ntbin_c=(ctbin_f-ctbin_i); //Clean data number of time bins per event
-    ntbin_d=(dtbin_f-dtbin_i); //Dirty data number of time bins per event
+    nevents=24991; //Number of events to be considered per run
     spin_cutoff=400; //Sum of absolute value of RFSF signal in Volts.
     beam_cutoff=1.5; //Minimum average beam power in volt
     no_beam_cutoff=5000; //Maximum number of pulses with no beam allowed
 }
 
-TTreeAsymmetry::~TTreeAsymmetry()
+void TTreeAsymmetry::InitRootFile()
 {
-    f->Close();
-    delete det_data;
-    delete dir_data;
-    delete t;
-    delete f;
-    // delete T; //deleting TFile will automatically delete T, so deleting again will give rise to crash in loop.
+    fName=ROOT_FILE_PATH;
+    fName+="run-";
+    fName+=run;
+    fName+=".root";
+    f=new TFile(fName,"recreate");
 }
+
 //Load Detector(Clean) DAQ event
 void TTreeAsymmetry::GetDetEntry(TBranch *b,int i)
 {
@@ -133,7 +170,7 @@ void TTreeAsymmetry::FillClean(TBranch **b,int entry,double sumc[][36],double &n
 	{
 	    sumc[i][nch]=0;
 	    //Loops through the sample for the loaded event
-	    for(int k=ctbin_i;k<ctbin_f;k++)
+	    for(int k=ctbin_i;k<=ctbin_f;k++)
 	    {
 		volt=((nch<18)? (det_data->det[k][nch]>>8)*FACTOR : (det_data->det[k][nch+6]>>8)*FACTOR); //This makes channels map in root file continuous.
 		sumc[i][nch]=sumc[i][nch]+volt;
@@ -162,7 +199,7 @@ void TTreeAsymmetry::FillDirty(TBranch *b,int entry,double *sumd,int &spin)
     {
 	sumd[nch]=0;
 	//Loops through the sample for the loaded event
-	for(int k=dtbin_i;k<dtbin_f;k++)
+	for(int k=dtbin_i;k<=dtbin_f;k++)
 	{
 	    volt=(dir_data->sig[k][nch]>>8)*FACTOR;
 	    sumd[nch]=sumd[nch]+abs(volt);
@@ -228,7 +265,7 @@ void TTreeAsymmetry::FillTree(TTree* tr)
     tr->Branch("sumd",sumd,"sumd[2]/D");
     tr->Branch("asym",asym,"asym[4][36]/D");
 
-    TBranch *br[5]; // Branch does not work with new operator
+    TBranch *br[5]; // Branch did not work with new operator
     nentries=GetAllBranches(run,br);
     if(nentries==-1)
     {
@@ -304,6 +341,15 @@ void TTreeAsymmetry::RunList(int runNumber)
 	case -6:
 	    runlist <<"NO_DATA_FILE"<<endl;
 	    break;
+	case -7:
+	    runlist <<"WRONG_CHOPPER_PHASES"<<endl;
+	    break;
+	case -8:
+	    runlist <<"WRONG_RFSF_PHASES"<<endl;
+	    break;
+	case -9:
+	    runlist << "HI_VOLTAGE_OFF" <<endl;
+	    break;	
 	default:
 	    runlist<<"GOOD"<<endl;
 	}
@@ -323,67 +369,76 @@ void TTreeAsymmetry::CheckSyncStatus(double sumc1,double sumc2,double sumc3,doub
 }
 
 //Make the tree
-void TTreeAsymmetry::MakeTree()
+TTree* TTreeAsymmetry::MakeTree()
 {
     if(!t->runExist)
     {
 	cout<<"The run does NOT exist"<<endl;
-    	if(ifstream(fName))
-    	    remove(fName);
-	error_code=-6;
-	RunList(run);
-	return;
-    }
-    cout <<"Making Summary root file for run number: "<<run<<"... ..." <<endl;
-
-    FillTree(T);  
-    if(fill_status)
-    {
-	T->Print();  
-	T->Write();
-	// f->Write(); // Saves current directory (Note trees  and histograms are created in current directory).
-	cout<<"\nThe run "<<run<<" is GOOD. Done making root file"<<endl;
-    }
-    else
-    {
-	switch(error_code)
+	if(save_tree)
 	{
-	case -1:
-	    cout << "The Run "<<run<<" has Trigger/Header issue" <<endl;
-	    break;
-	case -2:
-	    cout << "The run "<<run<<" has no beam, partial beam or too many dropped pulses" <<endl;
-	    break;
-	case -3:
-	    cout << "The run "<<run<<" has branches with different number of enntries" <<endl;
-	    break;
-	case -4:
-	    cout << "The run "<<run<<" is a short run" <<endl;
-	    break;
-	case -5:
-	    cout << "The run "<<run<<" has synchronization issue among all  five DAQs" <<endl;
-	    break;
-	case -6:
-	    cout << "The run "<<run<<" has NO data files on disk." <<endl;
-	    break;
-	case -7:
-	    cout << "The run "<<run<<" has wrong chopper phases." <<endl;
-	    break;
-	case -8:
-	    cout << "The run "<<run<<" has wrong RFSF phases." <<endl;
-	    break;
-	case -9:
-	    cout << "The run "<<run<<" has hi voltage turned off." <<endl;
-	    break;
-	default:
-	    cout<<"The run "<<run<<" is GOOD. Done making root file"<<endl;
+	    RunList(run);
+	    if(ifstream(fName))
+		remove(fName);
 	}
-
-    	cout<<"Skipping the run number "<<run<<" . --BAD RUN."<<endl;
-    	if(ifstream(fName))
-    	    remove(fName);
+	error_code=-6;
+	return T;
     }
-    RunList(run);
+    cout <<"Making Summary root file for run number: "<<run<<"... ..." <<flush;
+
+    FillTree(T);
+
+    if(save_tree)
+    {  
+	if(fill_status)
+	{
+	    T->Print();  
+	    T->Write();
+	    // f->Write(); // Saves current directory (Note trees  and histograms are created in current directory).
+	    cout<<"\nThe run "<<run<<" is GOOD. Done making root file"<<endl;
+	}
+	else
+	{
+	    switch(error_code)
+	    {
+	    case -1:
+		cout << "The Run "<<run<<" has Trigger/Header issue" <<endl;
+		break;
+	    case -2:
+		cout << "The run "<<run<<" has no beam, partial beam or too many dropped pulses" <<endl;
+		break;
+	    case -3:
+		cout << "The run "<<run<<" has branches with different number of enntries" <<endl;
+		break;
+	    case -4:
+		cout << "The run "<<run<<" is a short run" <<endl;
+		break;
+	    case -5:
+		cout << "The run "<<run<<" has synchronization issue among all  five DAQs" <<endl;
+		break;
+	    case -6:
+		cout << "The run "<<run<<" has NO data files on disk." <<endl;
+		break;
+	    case -7:
+		cout << "The run "<<run<<" has wrong chopper phases." <<endl;
+		break;
+	    case -8:
+		cout << "The run "<<run<<" has wrong RFSF phases." <<endl;
+		break;
+	    case -9:
+		cout << "The run "<<run<<" has hi voltage turned off." <<endl;
+		break;
+	    default:
+		cout<<"The run "<<run<<" is GOOD. Done making root file"<<endl;
+	    }
+
+	    cout<<"Skipping the run number "<<run<<" . --BAD RUN."<<endl;
+	    if(ifstream(fName))
+		remove(fName);
+	}
+	RunList(run);
+    }
+
+    return T;
 }
 
 

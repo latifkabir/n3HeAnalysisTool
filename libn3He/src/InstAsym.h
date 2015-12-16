@@ -1,4 +1,4 @@
-// Filename: TTreeAsymmetry.h
+// Filename: InstAsym.h
 // Description: n3He Summary Tree Maker Class
 // Author: Latiful Kabir < siplukabir@gmail.com >
 // Created: Tue Apr 14 22:10:08 2015 (-0400)
@@ -8,24 +8,25 @@
 #include <TBranch.h>
 #include<TString.h>
 #include<TEntryList.h>
+#include<TH1D.h>
 #include"TTreeRaw.h"
 
 #define FACTOR 1.192092896e-6 //factor for ADC count to Volt conversion.
 
 //Create a struc buffer to keep your events 
-struct detData
+struct detData2
 {
     int header[48];
     int det[49][48];  
 };
 
-struct dirData
+struct dirData2
 {
     int header[2];
     int sig[1624][2];  
 };
 
-class TTreeAsymmetry
+class InstAsym
 {
 protected:
     int ctbin_i;  // Clean data first time bin  
@@ -37,20 +38,17 @@ protected:
     double spin_cutoff; //Sum of absolute value of RFSF signal in Volts.
     double beam_cutoff;
     int no_beam_cutoff;
+    double histo_range;
+    detData2 *det_data;
+    dirData2 *dir_data;
 
-    detData *det_data;
-    dirData *dir_data;
-    TFile *f;
     TTreeRaw *t;
-    TString fName;
+
     TEntryList *list;
     int nentries;
+    bool fill_status;
+    int error_code;
     int nevents;
-    int n_dpulses;
-    int dpulse;
-    int first_dropped;
-    int last_dropped;
-    bool save_tree;
 
     void GetDetEntry(TBranch *b,int i);
     void GetDirEntry(TBranch *b,int i);
@@ -58,23 +56,18 @@ protected:
     void FillClean(TBranch **b,int entry,double sumc[][36],double &norm);
     void FillDirty(TBranch *b,int entry,double *sumd,int &spin);
     void FillAsym(int entry,double sumc[][36],double sumc_prev[][36],double norm,double norm_prev,int spin,int spin_prev,double asym[][36]);
-    void GetDroppedPls();
-    void CheckSyncStatus(double sumc1,double sumc2,double sumc3,double sumc4,double sumc5,double sumc6,double sumc7,double sumc8);
-    void FillTree(TTree* tr);
+    /* void GetDroppedPls(); */
+    /* void CheckSyncStatus(double sumc1,double sumc2,double sumc3,double sumc4,double sumc5,double sumc6,double sumc7,double sumc8); */
+    void FillInstData(TH1D ***myHist);
     void RunList(int runNumber);
 
 public:
     int run;
-    int error_code;
-    bool fill_status;
-    TTree *T;
-    void Init(int run_number);
-    void InitRootFile();
-    TTree* MakeTree();
-    TTreeAsymmetry(int runNumber, bool saveTree);
-    TTreeAsymmetry(int runNumber , bool saveTree,int ctb_i, int ctb_f);
-    ~TTreeAsymmetry();
 
-ClassDef(TTreeAsymmetry,0)
+    void CalAsym(TH1D ***myHist, double range);
+    InstAsym(int runNumber);
+    ~InstAsym();
+
+ClassDef(InstAsym,0)
 };
 

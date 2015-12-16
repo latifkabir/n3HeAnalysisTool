@@ -5,7 +5,7 @@
 *~
 *.exe
 *.o
-SampleData/
+LevelData/
 *.root
 .fuse*
 libn3He.so

@@ -67,8 +67,8 @@ void n3HeChain::Init(int start_run,int stop_run)
     }
     cout << "Total Root files added in the Chain:"<<count_chain<<endl;
 
-    //======Create the list of events with odd events only and also skip events (first event of root file) having run number as flag===== 
-    this->Draw(">>list_temp1","Entry$%24991!=0 && (Entry$%24991)%2==1","eventlist");
+    //======Create the list of events with odd events only and also skip events (first event of root file) having run number as flag, also skip first 8 entries in case there was dropped pulse just before the start of the run===== 
+    this->Draw(">>list_temp1","Entry$%24991!=0 && (Entry$%24991)>7 && (Entry$%24991)%2==1","eventlist");
     oddList = (TEventList*)gDirectory->Get("list_temp1");
 
     //======Create the list of events with even events only and also skip events (first event of root file) having run number as flag===== 

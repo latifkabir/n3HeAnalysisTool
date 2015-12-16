@@ -13,57 +13,55 @@ using namespace std;
 
 void RunStatus(int start_run,int last_run)
 {
-    ifstream inFile("/mnt/idata05/summary/runList.txt");
+    ifstream inFile("/mnt/idata05/summary/runListUD.txt");
     if(!inFile)
     {
 	cout<<"Could NOT locate data file"<<endl;
 	return;
     }
 
-    const int MaxRun=100000;
-    int run[MaxRun];
-    int error_code[MaxRun];
-    string error[MaxRun];
+    int run;
+    int error_code;
+    string error;
     int index=0;
-    int run_lower;
-    int run_up;
+    int n3he_first=17500; //First available n3He run number  
+    int n3he_last=62000;  //Last available n3He run number 
 
-    if((start_run!=0 && start_run<17400) || ( last_run!=0 && last_run<17400))
-    {
-	cout<<"Run Status for run number below 17400 is NOT available"<<endl;
-	return;
-    }
-
-    if(start_run!=0 && last_run!=0 && last_run<start_run)
+    if(start_run==0)
     {
 	cout << "Syntax: RunStatus(lower_range,upper_range)" <<endl;
+	cout << "Available Run range "<<n3he_first<<" to "<<n3he_last<<endl;
+
 	return;
     }
 
-    while(!inFile.eof())
-    {
-	inFile>>run[index]>>error_code[index]>>error[index];
-	index++;
-    }
+    if(start_run!=0 && last_run==0)
+	last_run=start_run;
 
-    run_lower=start_run;
-    if(last_run!=0)
-        run_up=last_run;
-    else if(last_run==0 && start_run!=0)
-	run_up=start_run;
-    else
-	run_up=run[index-2];
+    if(start_run<n3he_first || start_run > n3he_last || last_run<n3he_first || last_run > n3he_last)
+    {
+	cout<<"Run Status for run number below "<<n3he_first<<" or above "<<n3he_last<<" is NOT available"<<endl;
+	return;
+    }
     
     cout<<"Run Number"<<"\t\t"<<"Error Code"<<"\t\t"<<"Run Status"<<endl;
     cout<<"==========="<<"\t\t"<<"==========="<<"\t\t"<<"==========="<<endl;
-    
-    for(int i=0;i<index-1;i++)
+
+    while(!inFile.eof())
     {
-	if(run[i]>=run_lower && run[i]<=run_up)
+	inFile>>run>>error_code>>error;
+
+	if(run>=start_run && run<=last_run)
 	{	    
-	    cout << setw(5) <<run[i]
-		 <<"\t\t\t"<< setw(5) <<error_code[i]
-		 <<"\t\t\t"<< setw(5) <<error[i].c_str()<<endl;
+	    cout << setw(5) <<run
+		 <<"\t\t\t"<< setw(5) <<error_code
+		 <<"\t\t\t"<< setw(5) <<error.c_str()<<endl;
 	}
+	index++;
+
+	if(run>=last_run)
+	    break;
     }
+
+    inFile.close();
 }

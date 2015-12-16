@@ -20,7 +20,7 @@ void TreeMaker(int start_run=0,int stop_run=0)
     	cout << "====================================================="<<endl;
     	cout << "Now Making root file for run:"<<run <<"... ..."<<endl;
     	cout << "=====================================================\n"<<endl;
-    	TTreeAsymmetry *t=new TTreeAsymmetry(run);
+    	TTreeAsymmetry *t=new TTreeAsymmetry(run,true);
     	t->MakeTree();
     	cout << "Done with run number "<<run<<endl;
 	delete t;
