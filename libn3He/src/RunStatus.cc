@@ -13,7 +13,7 @@ using namespace std;
 
 void RunStatus(int start_run,int last_run)
 {
-    ifstream inFile("/mnt/idata05/summary/runListUD.txt");
+    ifstream inFile("/mnt/idata05/summary/runList.txt");
     if(!inFile)
     {
 	cout<<"Could NOT locate data file"<<endl;
@@ -24,8 +24,8 @@ void RunStatus(int start_run,int last_run)
     int error_code;
     string error;
     int index=0;
-    int n3he_first=17500; //First available n3He run number  
-    int n3he_last=62000;  //Last available n3He run number 
+    int n3he_first=14785; //First available n3He run number  
+    int n3he_last=61000;  //Last available n3He run number 
 
     if(start_run==0)
     {

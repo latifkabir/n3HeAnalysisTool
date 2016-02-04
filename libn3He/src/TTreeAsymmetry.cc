@@ -34,9 +34,10 @@ TTreeAsymmetry::TTreeAsymmetry(int runNumber , bool saveTree)
     dtbin_f=1623; //Dirty data last time bin
     ntbin_c=(ctbin_f-ctbin_i+1); //Clean data number of time bins per event
     ntbin_d=(dtbin_f-dtbin_i+1); //Dirty data number of time bins per event
+    norm_option=0;
 }
 
-TTreeAsymmetry::TTreeAsymmetry(int runNumber , bool saveTree,int ctb_i, int ctb_f)
+TTreeAsymmetry::TTreeAsymmetry(int runNumber , bool saveTree,int ctb_i, int ctb_f,int option)
 { 
     save_tree=saveTree;
     Init(runNumber);
@@ -50,6 +51,7 @@ TTreeAsymmetry::TTreeAsymmetry(int runNumber , bool saveTree,int ctb_i, int ctb_
     dtbin_f=1623; //Dirty data last time bin
     ntbin_c=(ctbin_f-ctbin_i+1); //Clean data number of time bins per event
     ntbin_d=(dtbin_f-dtbin_i+1); //Dirty data number of time bins per event
+    norm_option=option;
 }
 
 
@@ -59,14 +61,12 @@ TTreeAsymmetry::~TTreeAsymmetry()
     delete det_data;
     delete dir_data;
     delete t;
-    if(!save_tree)
-	delete T;
     if(save_tree)
     {
 	f->Close();
 	delete f;
     }
-    // delete T; //deleting TFile will automatically delete T, so deleting again will give rise to crash in loop.
+    delete T; 
 }
 
 void TTreeAsymmetry::Init(int run_number)
@@ -231,8 +231,8 @@ void TTreeAsymmetry::FillAsym(int entry,double sumc[][36],double sumc_prev[][36]
     		asym[i][nch]=run;
 	    else
 	    {
-		up=sumc[i][nch]/norm;
-		down=sumc_prev[i][nch]/norm_prev;
+		up=(norm_option!=3)? sumc[i][nch]/norm : sumc[i][nch];
+		down=(norm_option!=3)? sumc_prev[i][nch]/norm_prev : sumc_prev[i][nch];
 		if(spin==1 && spin_prev==0)
 		    asym[i][nch]=(up - down)/(up + down);  //This is actually (SF_on -SF_off) which corresponds to (Spin_down - Spin_up), So we need to correct the sign while filling histogram.  
 		else if(spin==0 && spin_prev==1)
@@ -290,7 +290,7 @@ void TTreeAsymmetry::FillTree(TTree* tr)
 	spin_prev=spin;
 
 	FillClean(br,i,sumc,norm);
-	FillDirty(br[4],i,sumd,spin);
+	FillDirty(br[4],i,sumd,spin);  
 	FillAsym(i,sumc,sumc_prev,norm,norm_prev,spin,spin_prev,asym);
 
 	if(i==list->GetEntry(dpulse))
@@ -383,7 +383,7 @@ TTree* TTreeAsymmetry::MakeTree()
 	error_code=-6;
 	return T;
     }
-    cout <<"Making Summary root file for run number: "<<run<<"... ..." <<flush;
+    cout <<"Making Summary root file for run number: "<<run<<"... ..." <<endl;
 
     FillTree(T);
 

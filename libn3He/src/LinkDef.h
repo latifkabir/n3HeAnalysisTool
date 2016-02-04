@@ -18,6 +18,9 @@
 #pragma link C++ function BeamPowerDist;
 #pragma link C++ function CalInstAsym;
 #pragma link C++ function FxAnalyzer;
+#pragma link C++ function PairAnalyzer;
+#pragma link C++ function MakePlotPair;
+#pragma link C++ global adc2volt;
 #pragma link C++ class TTreeRaw;
 #pragma link C++ class TTreeAsymmetry;
 #pragma link C++ class TBranchBinary;

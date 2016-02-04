@@ -28,16 +28,17 @@ struct myData
 {
     double asym[4][36];
 }; 
-void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int option) 
+void n3HePainAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int option) 
 {
     // Create a histogram for the values we read.
     int n_bin=100;
-    double x_low=-0.5;  
-    double x_up=0.5;   
+    double x_low=-1.5;  
+    double x_up=1.5;   
     int skip_pls=skip_pulses; //Skip dropped pulse including 1 before and 8 after (total 10 pulses are skipped).
     int run_counter=0;
     int n_adc=4; //Number of ADC
     int n_ch=36; //Number of Channels
+    int n_ch_p=16; //Number of Channel pairs per DAQ (reduced) in pair analysis.
     int level=0;  //Level of analysis accomplishment
     char file_name[200];
     int tb_i=0;
@@ -52,9 +53,11 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int opt
     double m1Asymmetry;
     double beamAsymmetry;
     int MaxDropped=100; //Maximum number of dropped pulses allowed to be considered as Good run.
+    double upperConj=0.0;
+    double lowerConj=0.0;
 
     TH1D *m1Asym =new TH1D("M1 Asymmetry","M1 Asymmetry",3000,-1.2,1.2);
-    TH1D *selm1Asym =new TH1D("Sel M1 Asymmetry","Sel M1 Asymmetry",1000,-1*m1AsymCutOff,m1AsymCutOff);
+    TH1D *selm1Asym =new TH1D("Sel M1 Asymmetry","Sel M1 Asymmetry",1000,-1.2*m1AsymCutOff,1.2*m1AsymCutOff);
     TH1D *beamAsym =new TH1D("Beam Asymmetry","Beam Asymmetry",3000,-1.2,1.2);
     TH1D *selBeamAsym =new TH1D("Sel Beam Asymmetry","Sel Beam Asymmetry",1000,-1*beamAsymCutOff,beamAsymCutOff);
 
@@ -62,11 +65,11 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int opt
     TH1D ***myHist;
     myHist=new TH1D**[n_adc];
     for(int i=0;i<n_adc;i++)
-    	myHist[i]=new TH1D*[n_ch];
+    	myHist[i]=new TH1D*[n_ch_p];
 
     for (int i = 0; i < n_adc; i++) 
     {
-	for(int j=0;j<n_ch;j++)
+	for(int j=0;j<n_ch_p;j++)
 	{
 	    stringstream h_name;
 	    h_name << "AsymHisto:" << i<<"-";
@@ -204,16 +207,41 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int opt
 		b->GetEntry(event);
 		for(int i=0;i<n_adc;i++)
 		{
-		    for(int j=0;j<n_ch;j++)
+		    for(int j=0;j<n_ch_p;j++)
 		    {
-			
-			myHist[i][j]->Fill(-1*md.asym[i][j]); // x(-1) to fix the fact that SF on is spin down & SF off is spin up
+			int k;
+			if(j>=0 && j<4)
+			{
+			    k=j;
+			    upperConj=-1*md.asym[i][8-k];// x(-1) to fix the fact that SF on is spin down & SF off is spin up
+			    lowerConj=-1*md.asym[i][k];
+			}
+			if(j>=4 && j<8)
+			{
+			    k=j+5;
+			    upperConj=-1*md.asym[i][26-k];
+			    lowerConj=-1*md.asym[i][k];
+			}
+			if(j>=8 && j<12)
+			{
+			    k=j+10;
+			    upperConj=-1*md.asym[i][44-k];
+			    lowerConj=-1*md.asym[i][k];
+			}
+			if(j>=12 && j<16)
+			{
+			    k=j+15; 
+			    upperConj=-1*md.asym[i][62-k];
+			    lowerConj=-1*md.asym[i][k];
+			}
+			 
+			myHist[i][j]->Fill(upperConj-lowerConj); 
 
 			//Keep track of max and min asym for outliar
-			if(abs(-1*md.asym[i][j]) > x_up)
+			if(abs(upperConj-lowerConj) > x_up)
 			{
-			    cout << "\nThe Run Number:"<<run << " has asymmmetry "<< -1*md.asym[i][j] << " which is greater than "<< x_up<<endl;
-			    cout << "This happens for ADC: "<<i <<" Channel: "<<j<<" Event: "<<event<<endl;
+			    cout << "\nThe Run Number:"<<run << " has asymmmetry difference "<< (upperConj-lowerConj) << " which is greater than "<< x_up<<endl;
+			    cout << "This happens for ADC: "<<i <<" Channel Pair: "<<j<<" Event: "<<event<<endl;
 			    cout << "You should investigate before proceeding" <<endl;
 			    cout << "Aborting the analysis :) ... ... "<<endl;
 			    myFile->Close();
@@ -250,7 +278,7 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int opt
 		levelRecord<<level;	
 		levelRecord.close();
 	    }
-	    SaveHisto(level,start_run,stop_run,run_counter,myHist);
+	    // SaveHisto(level,start_run,stop_run,run_counter,myHist);
 	    ofstream runList("/home/kabir/GIT/n3HeAnalysisTool/LevelData/AnalyzedRunList.txt",ofstream::app);
 	    if(runList)
 	    {
@@ -262,7 +290,7 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int opt
 
     //========Draw the histo and extract desired param==================
     TCanvas *c1= new TCanvas();
-    myHist[0][35]->Draw();
+    myHist[0][15]->Draw();
     if(option==1)
     {
 	TCanvas *c2= new TCanvas();
@@ -302,7 +330,7 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int opt
 
     for(int i=0;i<n_adc;i++)
     {
-	for(int j=0;j<n_ch;j++)
+	for(int j=0;j<n_ch_p;j++)
 	{
 	    asymmetry<<setw(10);
 	    asymmetry<<setprecision(8);
@@ -334,7 +362,7 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int opt
     // delete[] myHist;
 }
 
-void Analyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int option) 
+void PairAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int option) 
 {
 
     cout << "\n===============Printing for record============"<<endl;
@@ -351,7 +379,7 @@ void Analyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int option)
 	cout<<"Please enter a valid run range"<<endl;
 	return;
     }
-    n3HeAnalyzer(start_run,stop_run,skip_pulses,cut_off,option);
+    n3HePainAnalyzer(start_run,stop_run,skip_pulses,cut_off,option);
 
     cout << "\n===============Printing Again for record============"<<endl;
     cout << "Start run: "<<start_run <<"  Stop run: "<<stop_run<<endl;
@@ -368,3 +396,4 @@ void Analyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int option)
 // Option==0 : No beam asymmetry cut
 // Option==1: 0.1% M1 asymmetry cut 
 // Option==2: 0.1% beam asymmetry cut 
+

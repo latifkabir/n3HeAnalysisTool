@@ -28,7 +28,7 @@ void n3HeRunStatus(int start_run,int last_run)
     int run_lower;
     int run_up;
 
-    if((start_run!=0 && start_run<17400) || ( last_run!=0 && last_run<17400))
+    if((start_run!=0 && start_run<14785) || ( last_run!=0 && last_run<14785))
     {
 	cout<<"Run Status for run number below 17400 is NOT available"<<endl;
 	return;

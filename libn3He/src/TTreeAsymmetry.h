@@ -51,7 +51,8 @@ protected:
     int first_dropped;
     int last_dropped;
     bool save_tree;
-
+    int norm_option;
+    
     void GetDetEntry(TBranch *b,int i);
     void GetDirEntry(TBranch *b,int i);
     int GetAllBranches( int run,TBranch **b);
@@ -72,7 +73,7 @@ public:
     void InitRootFile();
     TTree* MakeTree();
     TTreeAsymmetry(int runNumber, bool saveTree);
-    TTreeAsymmetry(int runNumber , bool saveTree,int ctb_i, int ctb_f);
+    TTreeAsymmetry(int runNumber , bool saveTree,int ctb_i, int ctb_f,int option);
     ~TTreeAsymmetry();
 
 ClassDef(TTreeAsymmetry,0)

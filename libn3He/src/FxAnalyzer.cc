@@ -25,7 +25,7 @@ struct myFxData
 {
     double asym[4][36];
 }; 
-void n3HeFxAnalyzer(int start_run,int stop_run,int ctb_i,int ctb_f,int skip_pulses,int cut_off,double hist_range) 
+void n3HeFxAnalyzer(int start_run,int stop_run,int ctb_i,int ctb_f,int skip_pulses,int cut_off,double hist_range,int option) 
 {
     // Create a histogram for the values we read.
     int n_bin=100;
@@ -37,9 +37,22 @@ void n3HeFxAnalyzer(int start_run,int stop_run,int ctb_i,int ctb_f,int skip_puls
     int n_ch=36; //Number of Channels
     int level=0;  //Level of analysis accomplishment
     char file_name[200];
+    int norm_option=(option==3)? 1 : 0;
+    
+    double m1AsymCutOff=0.001; //Impose cut based on beamasymmetry cutoff=0.1%.
+
+    double beamAsymCutOff=0.001; //Impose cut based on beamasymmetry cutoff=0.1%.
+    double sumd[2]; //Buffer for sumd branch
+    double currentSumd;
+    double previousSumd;
+    double currentSumc;
+    double previousSumc;
+    double m1Asymmetry;
+    double beamAsymmetry;
+    int MaxDropped=100; //Maximum number of dropped pulses allowed to be considered as Good run.
 
    //=========================Load list for GOOD runs=========
-    ifstream inFile("/mnt/idata05/summary/runListUD.txt");
+    ifstream inFile("/mnt/idata05/summary/runList.txt");
     if(!inFile)
     {
 	cout<<"Could NOT locate data file"<<endl;
@@ -50,8 +63,8 @@ void n3HeFxAnalyzer(int start_run,int stop_run,int ctb_i,int ctb_f,int skip_puls
     int error_code;
     string error;
     int index=0;
-    int n3he_first=17500; //First available n3He run number  
-    int n3he_last=62000;  //Last available n3He run number 
+    int n3he_first=17400; //First available n3He run number  
+    int n3he_last=61000;  //Last available n3He run number 
 
     if(start_run==0)
     {
@@ -107,15 +120,18 @@ void n3HeFxAnalyzer(int start_run,int stop_run,int ctb_i,int ctb_f,int skip_puls
 
 	if(run>=start_run && run<=stop_run && error_code>-1)
 	{	    
-	    TTreeAsymmetry tr(run,false,ctb_i,ctb_f);
+	    TTreeAsymmetry tr(run,false,ctb_i,ctb_f,norm_option);
 	    TTree *T=tr.MakeTree();
 	    if(tr.error_code<0)
 		continue;
 	    //=================Create the buffer to hold event entries===================	    
-	    myFxData md;
+	    myFxData md, clean;
 	    TBranch *b=T->GetBranch("asym");
+	    TBranch *d=T->GetBranch("sumd");
+	    TBranch *c=T->GetBranch("sumc");
 	    b->SetAddress(&md.asym[0][0]);
-
+	    d->SetAddress(&sumd[0]);
+	    c->SetAddress(&clean.asym[0][0]); // In this line asym to be interpreted as data.
 	    //================== Get the drop pulses information=======================
 	    TCut droppedCut = Form("sumd[0]<%i",cut_off); 
 	    T->Draw(">>list_temp",droppedCut,"entrylist");
@@ -123,19 +139,43 @@ void n3HeFxAnalyzer(int start_run,int stop_run,int ctb_i,int ctb_f,int skip_puls
 	    // list->Print("all"); //Print all events that are dropped pulses for verification.
 	    int n_dpulses=list->GetN(); //Number of dropped pulses in the runNumber
 
+	    if(n_dpulses>MaxDropped)
+	    {
+		cout << " TOO MANY DROPPED. SKIPPED "<<endl;
+		continue;
+	    }
+
 	    int currentDroppedPulse,nextDroppedPulse;
 	    currentDroppedPulse=nextDroppedPulse=list->GetEntry(0); //First dropped pulse
-	    int firstEvent=1;//Skip First event & start from second event as first one is just Run number flag.
+	    int firstEvent=0;//Skip First event & start from second event as first one is just Run number flag.
 
 	    //=============Loop over all entries of the TTree or TChain to fill histogram or to do some analysis===============
 	
 	    int nentries=b->GetEntries(); //Number of total events to be considered.
-	    //If the first pulse is a dopped pilse, it would need to be bypassed carefully to be consistant with rest of the algorithm.
-	    if(nextDroppedPulse==0)
-		firstEvent=0;
       
 	    for(int event=firstEvent;event< nentries;event++) 
 	    {
+		if(option==1 || option==3)
+		{
+		    //======================= Calculate M1 monitor Asymmetry===================
+		    previousSumd=sumd[0];
+		    d->GetEntry(event);
+		    currentSumd=sumd[0];
+		    m1Asymmetry=(currentSumd-previousSumd)/(currentSumd+previousSumd); // Note event=0 Asymmetry is just grarbage.
+		}
+		if(option==2)
+		{
+		    //=====================Calculate beam asymmetry from sum over detectors signal================
+		    previousSumc=currentSumc;
+		    c->GetEntry(event);
+		    currentSumc=0;
+		    for(int i=0;i<n_adc;i++)
+		    {
+			for(int j=0;j<n_ch;j++)     
+			    currentSumc+=clean.asym[i][j]; // asym in this line to be interpreted as just data.		
+		    }	
+		    beamAsymmetry=(currentSumc-previousSumc)/(currentSumc+previousSumc); // Note event=0 Asymmetry is just grarbage.
+		}		
 		//========================Skip dropped pulses========================
 		if(event==nextDroppedPulse)
 		{
@@ -149,7 +189,17 @@ void n3HeFxAnalyzer(int start_run,int stop_run,int ctb_i,int ctb_f,int skip_puls
 
 		if(event<8)  //Skip first 8 pulses of the run in case there was a dropped pulse just before start of the run.
 		    continue;
-
+		if(option==1 || option==3)
+		{
+		    if(abs(m1Asymmetry)>m1AsymCutOff)  //Impose cut based on M1 asymmetry cutoff=0.1%.
+			continue;
+		}
+		if(option==2)
+		{
+		    if(abs(beamAsymmetry)>beamAsymCutOff)  //Impose cut based on beam asymmetry cutoff=0.1%.
+			continue;
+		}
+	    
 		if(event%2==1)  //Fill only unique pairs (Any one of the two set of pairs)
 		{
 		    b->GetEntry(event);
@@ -189,7 +239,26 @@ void n3HeFxAnalyzer(int start_run,int stop_run,int ctb_i,int ctb_f,int skip_puls
 	cout << "To save this analysis as Accomplishment, Enter non-zero level number:" <<endl;
 	cin>>level;
 	if(level!=0)
+	{
+	    // Read last level number and generate level number for current analysis.
+	    fstream levelRecord("/home/kabir/GIT/n3HeAnalysisTool/LevelData/levelRecord.txt");
+	    if(levelRecord)
+	    {
+		levelRecord>>level;
+		level++;
+		levelRecord.seekg(0,ios::beg);
+		levelRecord<<level;	
+		levelRecord.close();
+	    }
 	    SaveHisto(level,start_run,stop_run,run_counter,myHist);
+	    ofstream runList("/home/kabir/GIT/n3HeAnalysisTool/LevelData/AnalyzedRunList.txt",ofstream::app);
+	    if(runList)
+	    {
+		runList<<level<<"\t\t"<<start_run<<"\t\t"<<stop_run<<"\t\t"<<run_counter<<"\t\t"<<skip_pulses<<"\t\t"<<cut_off<<"\t\t"<<option<<"\t\t"<<MaxDropped<<"\t\t"<<ctb_i<<"\t\t"<<ctb_f<<endl;
+		runList.close();
+	    }
+
+	}
     }
 
     //========Draw the histo and extract desired param==================
@@ -220,6 +289,7 @@ void n3HeFxAnalyzer(int start_run,int stop_run,int ctb_i,int ctb_f,int skip_puls
 	}
     }
 
+    cout << "Saved as Level :"<<level <<endl;
     cout<<"Start Run: "<<start_run<<endl;
     cout << "Stop Run: "<<stop_run <<endl;
     cout << "Number of Runs Analyzed: "<<run_counter<<endl;
@@ -231,7 +301,7 @@ void n3HeFxAnalyzer(int start_run,int stop_run,int ctb_i,int ctb_f,int skip_puls
 }
 
 
-void FxAnalyzer(int start_run=0,int stop_run=0,int ctb_i=0,int ctb_f=48,int skip_pls=9,int cut_off=2000, double hist_range=0.5) 
+void FxAnalyzer(int start_run=0,int stop_run=0,int ctb_i=0,int ctb_f=48,int skip_pls=9,int cut_off=2000, double hist_range=0.5,int option=0) 
 {
 
     if(start_run<=0 || stop_run<=0 || start_run > stop_run)
@@ -246,13 +316,30 @@ void FxAnalyzer(int start_run=0,int stop_run=0,int ctb_i=0,int ctb_f=48,int skip
     cout << "Pulses to be skipped after dropped : "<<skip_pls <<endl;
     cout << "Cut off for dropped or low beam pulse: "<<cut_off<<" volts" <<endl;
     cout << "Range for histogram: +/-"<<hist_range<<endl;
+    cout << "Option: "<<option<<" where O: No cut, normalize 1:M1 Cut 2: beam asym cut 3: No norm, M1 cut"<<endl;
+    cout << "First time bin: "<< ctb_i<<" Last time bin:"<<ctb_f<<endl;
     cout << "=================================================" <<endl<<endl;
 
-    if(ctb_i<0 || ctb_f<0 || ctb_f>49 || skip_pls<0 || skip_pls > 200 || cut_off<0 || cut_off >5000 || hist_range<0) 
+    if(ctb_i<0 || ctb_f<0 || ctb_f>48 || skip_pls<0 || skip_pls > 200 || cut_off<0 || cut_off >5000 || hist_range<0 || open<0 || option>3) 
     {
 	cout << "One or more parameters have abnormal values. Check the parameters" <<endl;
 	return;
     }
 
-    n3HeFxAnalyzer(start_run,stop_run,ctb_i,ctb_f,skip_pls,cut_off,hist_range);
+    n3HeFxAnalyzer(start_run,stop_run,ctb_i,ctb_f,skip_pls,cut_off,hist_range,option);
+
+    cout << "==============Printing Again for record================" <<endl;
+    cout << "Start run: "<<start_run<<" Stop Run: "<<stop_run<<endl;
+    cout << "First time bin: "<<ctb_i<<" Last time bin: "<<ctb_f<<endl;
+    cout << "Pulses to be skipped after dropped : "<<skip_pls <<endl;
+    cout << "Cut off for dropped or low beam pulse: "<<cut_off<<" volts" <<endl;
+    cout << "Range for histogram: +/-"<<hist_range<<endl;
+    cout << "Option: "<<option<<" where O: No cut, normalize 1:M1 Cut 2: beam asym cut 3: No norm, M1 cut"<<endl;
+    cout << "=================================================" <<endl<<endl;
+
 }
+
+// Option==0 : No beam asymmetry cut
+// Option==1: 0.1% M1 asymmetry cut 
+// Option==2: 0.1% beam asymmetry cut 
+// Option==3: Do not normalize in Asymmetry Cal . Apply M1 Asym cut

@@ -1,7 +1,7 @@
 void piechart()
 {
-    Float_t vals[] = {16684.0,246.0,201.0,2820.0,802.0,19.0,43.0};
-    Int_t colors[] = {2,3,4,5,6,7,9};
+    Float_t vals[] = {34754.0,902.0,838.0,6897.0,2602.0,56.0,107.0,50.0};
+    Int_t colors[] = {2,3,4,5,6,7,8,9};
     Int_t nvals = sizeof(vals)/sizeof(vals[0]);
 
    TCanvas *cpie = new TCanvas("cpie","TPie test",700,700);
@@ -21,6 +21,7 @@ void piechart()
    pie3->SetEntryLabel(4,"Short Runs");
    pie3->SetEntryLabel(5,"Sync Issue");
    pie3->SetEntryLabel(6,"No Data File");
+   pie3->SetEntryLabel(7,"Diff No of entries");
 
 
    TLegend *pieleg = pie3->MakeLegend();

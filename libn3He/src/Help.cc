@@ -19,7 +19,7 @@ void Help()
     cout << "\t\t---To create the summary root files for a range of runs:" <<endl;
     cout << "\t\t\tTreeMaker(int start_run,int stop_run)" <<endl<<endl;
     cout << "\t\t---To Calculate Asymmetry out of created or existing root file: "<<endl;
-    cout<<"\t\t\tAnalyzer(int start_run,int last_run,int skip_pulses=9,int cut_off=2000)" <<endl<<endl;
+    cout<<"\t\t\tAnalyzer(int start_run,int last_run,int skip_pulses=9,int cut_off=2000,int option=0)" <<endl<<endl;
     cout << "\t\t---To make asymmetry plot:" <<endl;
     cout << "\t\t\tMakePlot(int level=-1,const char* option,const char* data_file)" <<endl;
     cout << "\t\t\twhere 'option' can be either 'raw' or 'phy' "<<endl;
@@ -42,7 +42,7 @@ void Help()
     cout<<"\t\t---To Calculate Instrumental Asymmetry:" <<endl;
     cout << "\t\t\tCalInstAsym(int start_run=0,int stop_run=0)" <<endl<<endl;
     cout<<"\t\t---To Calculate asymmetry with flexibility :" <<endl;
-    cout << "\t\t\tFxAnalyzer(int start_run=0,int stop_run=0,int ctb_i=0,int ctb_f=48,\n\t\t\tint skip_pls=9,int cut_off=2000, double hist_range=0.5)"<<endl<<endl;
+    cout << "\t\t\tFxAnalyzer(int start_run=0,int stop_run=0,int ctb_i=0,int ctb_f=48,\n\t\t\tint skip_pls=9,int cut_off=2000, double hist_range=0.5,int option=0)"<<endl<<endl;
     cout<<"\t\t---For detailed instruction and sample analysis:" <<endl;
     cout << "\t\t\tCheck Analysis Manual on n3He Software Git page." <<endl;
 }

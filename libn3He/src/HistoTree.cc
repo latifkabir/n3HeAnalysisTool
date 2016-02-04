@@ -68,19 +68,6 @@ void SaveHisto(int level,int first_run,int last_run,int runs_analyzed,TH1D ***my
     f->Close();
    //Note the tree has just one entry in the root file here
 
-
-   //===========Keep Record of Analysis in a Text File============
-    ofstream record(ANALYSIS_RECORD,ofstream::app);
-    //Generate current date and time of the run in desired format
-    time_t now = time(0);    
-    // convert now to string form
-    char* dt = ctime(&now);
-
-    if(record)
-    {
-	record<<dt<<"          "<<level<<"          "<<first_run<<"          "<<last_run<<"          "<<runs_analyzed<<endl;
-	record.close();
-    }
 }
 
 
