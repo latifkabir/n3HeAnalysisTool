@@ -63,7 +63,7 @@ void n3HeFxAnalyzer(int start_run,int stop_run,int ctb_i,int ctb_f,int skip_puls
     int error_code;
     string error;
     int index=0;
-    int n3he_first=17400; //First available n3He run number  
+    int n3he_first=14785; //First available n3He run number  
     int n3he_last=61000;  //Last available n3He run number 
 
     if(start_run==0)

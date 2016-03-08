@@ -7,7 +7,6 @@
 #include<iostream>
 #include<fstream>
 #include<iomanip>
-#include<fstream>
 #include<sstream>
 #include<cmath>
 using namespace std;
@@ -155,7 +154,7 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int opt
 		previousSumd=sumd[0];
 		d->GetEntry(event);
 		currentSumd=sumd[0];
-		m1Asymmetry=(currentSumd-previousSumd)/(currentSumd+previousSumd); // Note event=0 Asymmetry is just grarbage.
+		m1Asymmetry=(currentSumd-previousSumd)/(currentSumd+previousSumd); // Note event=0 Asymmetry is just garbage.
 		if(event%2==1)  
 		    m1Asym->Fill(m1Asymmetry);
 	    }
@@ -170,7 +169,7 @@ void n3HeAnalyzer(int start_run,int stop_run,int skip_pulses,int cut_off,int opt
 		    for(int j=0;j<n_ch;j++)     
 			currentSumc+=clean.asym[i][j]; // asym in this line to be interpreted as just data.		
 		}	
-		beamAsymmetry=(currentSumc-previousSumc)/(currentSumc+previousSumc); // Note event=0 Asymmetry is just grarbage.
+		beamAsymmetry=(currentSumc-previousSumc)/(currentSumc+previousSumc); // Note event=0 Asymmetry is just garbage.
 		if(event%2==1)  
 		    beamAsym->Fill(beamAsymmetry);
 	    }

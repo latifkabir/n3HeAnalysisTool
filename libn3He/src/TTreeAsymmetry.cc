@@ -162,6 +162,7 @@ void TTreeAsymmetry::GetDroppedPls()
 void TTreeAsymmetry::FillClean(TBranch **b,int entry,double sumc[][36],double &norm)
 {
     double volt;
+    int channel;
     norm=0;    
     for(int i=0;i<4;i++)
     {
@@ -172,7 +173,8 @@ void TTreeAsymmetry::FillClean(TBranch **b,int entry,double sumc[][36],double &n
 	    //Loops through the sample for the loaded event
 	    for(int k=ctbin_i;k<=ctbin_f;k++)
 	    {
-		volt=((nch<18)? (det_data->det[k][nch]>>8)*FACTOR : (det_data->det[k][nch+6]>>8)*FACTOR); //This makes channels map in root file continuous.
+		channel=(nch<18)? nch : nch+6;
+		volt= (det_data->det[k][channel]>>8)*FACTOR; //This makes channels map in root file continuous.
 		sumc[i][nch]=sumc[i][nch]+volt;
 		if(abs(volt) > 5)
 		{
@@ -180,9 +182,10 @@ void TTreeAsymmetry::FillClean(TBranch **b,int entry,double sumc[][36],double &n
 		    error_code=-1;
 		}
 	    }
-	    if((i==1 && nch==29) || (i==3 && nch==29) || (i==3 && nch==33)) //Fix polarity issues in some wires
+	    if((i==1 && channel==35) || (i==3 && channel==35) || (i==3 && channel==39)) //Fix polarity issues in some wires
 	    {
-		sumc[i][nch]=-1.0*sumc[i][nch];
+		if(sumc[i][nch]<0)
+		    sumc[i][nch]=-1.0*sumc[i][nch]; 
 	    }
 	    norm+=sumc[i][nch];
 	}

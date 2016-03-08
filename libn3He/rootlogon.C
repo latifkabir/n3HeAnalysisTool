@@ -10,11 +10,19 @@
     cout << "\t\t  Attempting to load libn3He.so ... ";
     gSystem->Load("libTree");
     gSystem->Load("libHist");
-    int status=gSystem->Load("libn3He.so");
-    if(status>-1)
+    int status1=gSystem->Load("libn3He.so");
+    if(status1>-1)
+	cout << "attempt completed !!\n";
+    else
+	cout << "attempt failed.\n";
+
+    cout << "\t\t  Attempting to load libAnalysis.so ...";
+    int status2=gSystem->Load("libAnalysis.so");
+    if(status2>-1)
 	cout << "attempt completed !!\n\n";
     else
 	cout << "attempt failed.\n\n";
+   
     gStyle->SetMarkerStyle(7);    // Filled square
     gStyle->SetMarkerSize(.4);     // larger than half a pixel ...
     gStyle->SetMarkerColor(kBlack);
